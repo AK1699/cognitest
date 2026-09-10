@@ -1,5 +1,9 @@
 packages:
   - "apps/*"
   - "packages/*"
+allowBuilds:
+  "@swc/core": true
+  esbuild: true
 minimumReleaseAgeExclude:
   - zod@4.6.1
+  - "@types/node@22.20.2"

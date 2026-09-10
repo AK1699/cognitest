@@ -1,0 +1,48 @@
+{
+  "name": "@cognitest/api",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "nest build",
+    "dev": "nest start --watch",
+    "start": "node dist/main.js",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "migrate": "tsx src/db/migrate.ts",
+    "seed": "tsx src/db/seed.ts",
+    "db:generate": "drizzle-kit generate"
+  },
+  "dependencies": {
+    "@cognitest/shared": "workspace:*",
+    "@fastify/helmet": "^13.1.1",
+    "@nestjs/common": "^11.2.3",
+    "@nestjs/config": "^12.0.0",
+    "@nestjs/core": "^11.2.3",
+    "@nestjs/platform-fastify": "^11.2.3",
+    "drizzle-orm": "^0.45.2",
+    "fastify": "5.11.3",
+    "ioredis": "^5.11.1",
+    "nestjs-pino": "^5.1.0",
+    "pino": "^10.3.1",
+    "pino-http": "^11.0.0",
+    "postgres": "^3.4.9",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "zod": "^4.6.1"
+  },
+  "devDependencies": {
+    "@cognitest/config": "workspace:*",
+    "@nestjs/cli": "^11.0.24",
+    "@nestjs/testing": "^11.2.3",
+    "@swc/core": "^1.10.0",
+    "@types/node": "^22.20.2",
+    "drizzle-kit": "^0.31.10",
+    "eslint": "^9.39.5",
+    "pino-pretty": "^13.1.3",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.3",
+    "unplugin-swc": "^1.6.0",
+    "vitest": "^4.1.11"
+  }
+}
