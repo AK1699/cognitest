@@ -6,4 +6,9 @@ allowBuilds:
   esbuild: true
 minimumReleaseAgeExclude:
   - zod@4.6.1
-  - "@types/node@22.20.2"
+  - '@types/node@22.20.2'
+  - '@types/react-dom@19.3.0'
+  - '@types/react@19.3.0'
+  - react-dom@19.3.0
+  - react@19.3.0
+  - scheduler@0.28.0
