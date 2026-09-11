@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import { healthResponseSchema } from '@cognitest/shared';
 import type { HealthCheckState, HealthResponse } from '@cognitest/shared';
 
@@ -16,13 +18,13 @@ async function getHealth(): Promise<HealthResponse | null> {
   }
 }
 
-function StatusDot({ state }: { state: HealthCheckState }) {
-  return (
-    <span
-      className={`inline-block h-2.5 w-2.5 rounded-full ${
-        state === 'up' ? 'bg-emerald-400' : 'bg-red-400'
-      }`}
-    />
+function StatusBadge({ state }: { state: HealthCheckState }) {
+  return state === 'up' ? (
+    <span className="rounded-full bg-pass-tint px-2.5 py-0.5 text-xs font-bold text-pass">up</span>
+  ) : (
+    <span className="rounded-full bg-fail-tint px-2.5 py-0.5 text-xs font-bold text-fail">
+      down
+    </span>
   );
 }
 
@@ -31,37 +33,45 @@ export default async function HomePage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-8 p-8">
-      <h1 className="text-5xl font-bold tracking-tight">Cognitest</h1>
+      <h1 className="text-5xl font-bold text-primary-deep">Cognitest</h1>
 
-      <section className="w-full max-w-sm rounded-xl border border-slate-800 bg-slate-900 p-6">
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-400">
-          API health
-        </h2>
+      <section className="w-full max-w-sm rounded-card border border-line bg-white p-6">
+        <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-muted">API health</h2>
 
         {health === null ? (
-          <p className="text-sm text-slate-300">
+          <p className="text-sm text-ink">
             API unreachable — run{' '}
-            <code className="rounded bg-slate-800 px-1 py-0.5 text-xs">
+            <code className="rounded bg-primary-tint px-1 py-0.5 font-mono text-xs">
               docker compose up -d && pnpm dev
             </code>
           </p>
         ) : (
-          <ul className="space-y-3 text-sm">
+          <ul className="space-y-3 text-sm text-ink">
             <li className="flex items-center justify-between">
               <span>Overall</span>
-              <span className="font-medium">{health.status}</span>
+              <span className="font-bold text-primary-deep">{health.status}</span>
             </li>
             <li className="flex items-center justify-between">
               <span>PostgreSQL</span>
-              <StatusDot state={health.checks.postgres} />
+              <StatusBadge state={health.checks.postgres} />
             </li>
             <li className="flex items-center justify-between">
               <span>Redis</span>
-              <StatusDot state={health.checks.redis} />
+              <StatusBadge state={health.checks.redis} />
             </li>
           </ul>
         )}
       </section>
+
+      <p className="text-sm text-muted">
+        <Link href="/login" className="font-semibold text-accent hover:text-accent-deep">
+          Log in
+        </Link>{' '}
+        ·{' '}
+        <Link href="/signup" className="font-semibold text-accent hover:text-accent-deep">
+          Sign up
+        </Link>
+      </p>
     </main>
   );
 }
