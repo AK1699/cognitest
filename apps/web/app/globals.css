@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+/*
+ * Cognitest design system tokens.
+ * Teal is the workhorse; magenta is reserved for CTAs and AI features.
+ * Status colours are fixed and never reused for brand purposes.
+ */
+@theme {
+  /* brand */
+  --color-primary-deep: #0a5f5b;
+  --color-primary: #367c79;
+  --color-primary-tint: #e3efed;
+  --color-accent: #d3407f;
+  --color-accent-deep: #a53263;
+  --color-accent-tint: #f8e2ec;
+
+  /* surface */
+  --color-cream: #faf5ea;
+  --color-ink: #22302d;
+  --color-muted: #6b7873;
+  --color-line: #e1dcca;
+
+  /* status — fixed */
+  --color-pass: #178a6f;
+  --color-pass-tint: #dff2ea;
+  --color-fail: #c22f2a;
+  --color-fail-tint: #f8d7d4;
+  --color-warn: #c08a1d;
+  --color-warn-tint: #f7ecd2;
+
+  /* typography */
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-karla), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, Menlo, Consolas, monospace;
+
+  /* shape */
+  --radius-card: 14px;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.015em;
+  }
+}

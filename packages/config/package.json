@@ -1,0 +1,21 @@
+{
+  "name": "@cognitest/config",
+  "version": "0.0.1",
+  "private": true,
+  "files": [
+    "tsconfig.base.json",
+    "eslint.base.mjs",
+    "prettier.config.mjs"
+  ],
+  "exports": {
+    "./tsconfig.base.json": "./tsconfig.base.json",
+    "./eslint.base.mjs": "./eslint.base.mjs",
+    "./prettier.config.mjs": "./prettier.config.mjs"
+  },
+  "dependencies": {
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.9.6",
+    "typescript-eslint": "^8.70.0"
+  }
+}
