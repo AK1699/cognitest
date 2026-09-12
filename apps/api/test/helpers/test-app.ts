@@ -92,6 +92,9 @@ export async function cleanupUsers(
   if (orgIds.length > 0) {
     await owner`delete from audit_logs where organization_id = any(${orgIds}::uuid[])`;
     await owner`delete from invitations where organization_id = any(${orgIds}::uuid[])`;
+    // approvals are polymorphic (no FK to plans) — clean them explicitly;
+    // artefacts themselves cascade with their project
+    await owner`delete from approvals where organization_id = any(${orgIds}::uuid[])`;
     await owner`delete from project_members where organization_id = any(${orgIds}::uuid[])`;
     await owner`delete from projects where organization_id = any(${orgIds}::uuid[])`;
     await owner`delete from team_members where organization_id = any(${orgIds}::uuid[])`;
@@ -104,5 +107,9 @@ export async function cleanupUsers(
   }
   await owner`delete from audit_logs where actor_user_id in
     (select id from users where email like ${emailPattern})`;
+  // approvals reference users directly (requested_by/decided_by, no cascade)
+  await owner`delete from approvals where
+    requested_by in (select id from users where email like ${emailPattern})
+    or decided_by in (select id from users where email like ${emailPattern})`;
   await owner`delete from users where email like ${emailPattern}`;
 }
