@@ -4,10 +4,11 @@ export const sessionSchema = z.object({
   id: z.uuid(),
   userId: z.uuid(),
   tokenHash: z.string(),
-  ip: z.string().nullable(),
+  ipHash: z.string().nullable(),
   userAgent: z.string().nullable(),
   expiresAt: z.coerce.date(),
   revokedAt: z.coerce.date().nullable(),
+  lastSeenAt: z.coerce.date().nullable(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
 });
