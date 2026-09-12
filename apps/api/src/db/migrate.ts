@@ -12,8 +12,12 @@ import { loadEnv } from '../config/load-env';
  */
 export async function runMigrations(): Promise<void> {
   loadEnv();
+  // migrations run as the table owner (RLS bypass is intentional here);
+  // the API runtime uses the non-owner cognitest_app role via DATABASE_URL
   const url =
-    process.env.DATABASE_URL ?? 'postgres://cognitest:cognitest@localhost:5432/cognitest';
+    process.env.DATABASE_URL_MIGRATIONS ??
+    process.env.DATABASE_URL ??
+    'postgres://cognitest:cognitest@localhost:5432/cognitest';
   // max: 1 — the migrator needs a single connection, and anything more keeps
   // the process alive after end()
   const client = postgres(url, { max: 1 });

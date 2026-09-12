@@ -50,6 +50,13 @@
       "when": 1789191025063,
       "tag": "0006_authz_domain",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1789191219192,
+      "tag": "0007_rls",
+      "breakpoints": true
     }
   ]
 }
