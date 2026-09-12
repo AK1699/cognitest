@@ -102,7 +102,9 @@ export class OidcController {
         path: '/',
         maxAge: this.sessions.cookieMaxAge,
       });
-      await reply.redirect(`${this.webOrigin}${result.redirectTo}`, 302);
+      // brand-new accounts always start in the onboarding wizard
+      const destination = login.isNewUser ? '/onboarding' : result.redirectTo;
+      await reply.redirect(`${this.webOrigin}${destination}`, 302);
     } catch (error) {
       this.logger.error({ err: error }, `${provider} OIDC callback failed`);
       await fail('oidc_failed');

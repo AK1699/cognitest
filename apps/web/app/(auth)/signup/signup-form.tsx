@@ -18,9 +18,8 @@ export function SignupForm() {
             username: fields.username,
             email: fields.email,
             password: fields.password,
-            organizationName: fields.organizationName,
           },
-          '/',
+          '/onboarding',
           signupRequestSchema,
         )
       }
@@ -53,13 +52,6 @@ export function SignupForm() {
         type="password"
         placeholder="At least 12 characters"
         autoComplete="new-password"
-      />
-      <Field
-        id="organizationName"
-        label="Workspace name"
-        type="text"
-        placeholder="Acme QA"
-        autoComplete="organization"
       />
       <PrimaryButton>{pending ? 'Creating account…' : 'Create account'}</PrimaryButton>
     </AuthForm>

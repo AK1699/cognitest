@@ -15,7 +15,7 @@ export class SignupDto {
   username!: string;
   password!: string;
   displayName!: string;
-  organizationName!: string;
+  organizationName?: string;
 }
 
 export class LoginDto {

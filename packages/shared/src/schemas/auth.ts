@@ -19,8 +19,11 @@ export const signupRequestSchema = z.object({
   username: usernameSchema,
   password: passwordSchema,
   displayName: z.string().min(1, 'Display name is required').max(100),
-  /** Workspace to bootstrap (spec §8); the slug is generated server-side. */
-  organizationName: z.string().min(1, 'Workspace name is required').max(100),
+  /**
+   * Optional one-shot workspace bootstrap (API convenience). The web signup
+   * omits it — the onboarding wizard creates the organization instead.
+   */
+  organizationName: z.string().min(1).max(100).optional(),
 });
 export type SignupRequest = z.infer<typeof signupRequestSchema>;
 

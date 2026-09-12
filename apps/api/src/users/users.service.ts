@@ -27,6 +27,7 @@ export class UsersService {
             slug: organizations.slug,
             status: organizations.status,
             onboardingStatus: organizations.onboardingStatus,
+            onboardingStep: organizations.onboardingStep,
           },
         })
         .from(organizationMembers)

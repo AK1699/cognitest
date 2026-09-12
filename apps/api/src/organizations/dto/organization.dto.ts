@@ -9,6 +9,7 @@ export class CreateOrganizationDto {
   static readonly zodSchema = createOrganizationRequestSchema;
   name!: string;
   slug?: string;
+  defaultTeam?: boolean;
 }
 
 export class UpdateOrganizationDto {

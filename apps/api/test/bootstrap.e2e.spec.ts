@@ -75,6 +75,64 @@ describe('organization bootstrap (e2e)', () => {
     expect(slug).toMatch(/^second-workspace-[a-f0-9]{6}$/); // first one exists → suffix
   });
 
+  it('signup without organizationName creates no workspace (wizard path)', async () => {
+    const res = await app.getHttpAdapter().getInstance().inject({
+      method: 'POST',
+      url: '/auth/signup',
+      payload: {
+        email: `wizard-${user.id.slice(0, 8)}@${DOMAIN}`,
+        username: `wizard-${user.id.slice(0, 8)}`,
+        password: 'a-long-secure-password',
+        displayName: 'Wizard User',
+      },
+      remoteAddress: uniqueIp(),
+    });
+    expect(res.statusCode).toBe(201);
+    const created = (res.json() as { user: { id: string } }).user;
+    const memberships = await owner`select id from organization_members
+      where user_id = ${created.id}`;
+    expect(memberships.length).toBe(0);
+  });
+
+  it('onboarding wizard flow: org without default team → team → completed', async () => {
+    const instance = app.getHttpAdapter().getInstance();
+    const created = await instance.inject({
+      method: 'POST',
+      url: '/organizations',
+      payload: { name: 'Wizard Workspace', defaultTeam: false },
+      headers: user.cookie,
+      remoteAddress: uniqueIp(),
+    });
+    expect(created.statusCode).toBe(201);
+    const org = (created.json() as { organization: { id: string; onboardingStep: string } })
+      .organization;
+    expect(org.onboardingStep).toBe('team');
+    const teams = await owner`select id from teams where organization_id = ${org.id}`;
+    expect(teams.length).toBe(0);
+
+    const team = await instance.inject({
+      method: 'POST',
+      url: `/organizations/${org.id}/teams`,
+      payload: { name: 'QA Core', slug: 'qa-core' },
+      headers: user.cookie,
+      remoteAddress: uniqueIp(),
+    });
+    expect(team.statusCode).toBe(201);
+
+    const done = await instance.inject({
+      method: 'PATCH',
+      url: `/organizations/${org.id}`,
+      payload: { onboardingStatus: 'completed', onboardingStep: null },
+      headers: user.cookie,
+      remoteAddress: uniqueIp(),
+    });
+    expect(done.statusCode).toBe(200);
+    const [row] = await owner`select onboarding_status, onboarding_completed_at
+      from organizations where id = ${org.id}`;
+    expect(row?.onboarding_status).toBe('completed');
+    expect(row?.onboarding_completed_at).toBeTruthy();
+  });
+
   it('GET /users/me/organizations lists every membership with the org', async () => {
     const res = await app.getHttpAdapter().getInstance().inject({
       method: 'GET',

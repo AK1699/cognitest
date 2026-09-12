@@ -178,15 +178,18 @@ export class OrganizationsService {
   }
 
   /**
-   * Transactional signup bootstrap (spec §8–9): organization → admin
-   * membership → default team → team membership → audit event. The org UUID is
-   * generated app-side and SET LOCAL'd before the insert so RLS admits it.
+   * Transactional bootstrap (spec §8–9): organization → admin membership →
+   * default team → team membership → audit event. The org UUID is generated
+   * app-side and SET LOCAL'd before the insert so RLS admits it.
+   * `defaultTeam: false` skips team creation — the onboarding wizard creates
+   * a named team itself in step 2 (tracked via onboarding_step).
    */
   async bootstrapOrganization(
     userId: string,
-    input: { name: string; slug?: string },
+    input: { name: string; slug?: string; defaultTeam?: boolean },
   ): Promise<Organization> {
     const organizationId = randomUUID();
+    const withDefaultTeam = input.defaultTeam !== false;
     const slug = input.slug ?? (await this.availableSlug(slugify(input.name)));
 
     const [adminRole] = await this.db
@@ -199,7 +202,14 @@ export class OrganizationsService {
       this.tenantDb.run(async (tx) => {
         const [organization] = await tx
           .insert(organizations)
-          .values({ id: organizationId, name: input.name, slug, onboardingStatus: 'in_progress' })
+          .values({
+            id: organizationId,
+            name: input.name,
+            slug,
+            onboardingStatus: 'in_progress',
+            // wizard resume point: next step is team creation or invitations
+            onboardingStep: withDefaultTeam ? 'invite' : 'team',
+          })
           .returning();
         if (!organization) throw new Error('organization insert returned no row');
 
@@ -207,12 +217,14 @@ export class OrganizationsService {
           .insert(organizationMembers)
           .values({ organizationId, userId, roleId: adminRole.id });
 
-        const [team] = await tx
-          .insert(teams)
-          .values({ organizationId, name: 'General', slug: 'general' })
-          .returning({ id: teams.id });
-        if (!team) throw new Error('team insert returned no row');
-        await tx.insert(teamMembers).values({ teamId: team.id, organizationId, userId });
+        if (withDefaultTeam) {
+          const [team] = await tx
+            .insert(teams)
+            .values({ organizationId, name: 'General', slug: 'general' })
+            .returning({ id: teams.id });
+          if (!team) throw new Error('team insert returned no row');
+          await tx.insert(teamMembers).values({ teamId: team.id, organizationId, userId });
+        }
 
         await this.audit.log(
           {

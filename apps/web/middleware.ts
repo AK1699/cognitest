@@ -21,7 +21,10 @@ export function middleware(request: NextRequest) {
 
   if (!hasSession && !PUBLIC_PAGES.has(pathname)) {
     const login = new URL('/login', request.url);
-    if (pathname !== '/') login.searchParams.set('redirectTo', pathname);
+    // keep the query too — invitation links carry their token in it
+    if (pathname !== '/') {
+      login.searchParams.set('redirectTo', pathname + request.nextUrl.search);
+    }
     return NextResponse.redirect(login);
   }
   if (hasSession && AUTH_PAGES.has(pathname)) {

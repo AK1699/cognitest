@@ -72,7 +72,7 @@ describe('OIDC (e2e, mocked provider)', () => {
     await app.close();
   });
 
-  it('creates a new user with a bootstrapped workspace on first Google login', async () => {
+  it('first Google login creates the user and sends them to onboarding (no auto-workspace)', async () => {
     mockState.failGrant = false;
     mockState.claims = {
       sub: `google-sub-${run}`,
@@ -84,7 +84,7 @@ describe('OIDC (e2e, mocked provider)', () => {
 
     const res = await completeFlow('google');
     expect(res.statusCode).toBe(302);
-    expect(res.headers.location).toBe('http://localhost:3000/dashboard');
+    expect(res.headers.location).toBe('http://localhost:3000/onboarding');
     expect(sessionCookie(res)).toBeTruthy();
 
     const [user] = await owner`select id, status, email_verified_at, password_hash, username
@@ -93,14 +93,16 @@ describe('OIDC (e2e, mocked provider)', () => {
     expect(user?.email_verified_at).toBeTruthy();
     expect(user?.password_hash).toBeNull();
     expect(user?.username).toBeNull();
-    const [membership] = await owner`select r.key from organization_members om
-      join roles r on r.id = om.role_id where om.user_id = ${user?.id}`;
-    expect(membership?.key).toBe('admin');
+    // the onboarding wizard creates the organization — none exists yet
+    const memberships = await owner`select id from organization_members
+      where user_id = ${user?.id}`;
+    expect(memberships.length).toBe(0);
   });
 
-  it('second Google login with the same sub reuses the account', async () => {
+  it('second Google login reuses the account and honours redirectTo', async () => {
     const res = await completeFlow('google');
     expect(res.statusCode).toBe(302);
+    expect(res.headers.location).toBe('http://localhost:3000/dashboard');
     const count = await owner`select count(*)::int as n from users
       where email = ${`new-${run}@oidc.test.local`}`;
     expect(count[0]?.n).toBe(1);

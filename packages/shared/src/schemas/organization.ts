@@ -32,8 +32,10 @@ export const organizationMemberSchema = z.object({
 export type OrganizationMember = z.infer<typeof organizationMemberSchema>;
 
 export const createOrganizationRequestSchema = z.object({
-  name: z.string().min(1).max(100),
+  name: z.string().min(1, 'Organization name is required').max(100),
   slug: organizationSlugSchema.optional(),
+  /** false = the onboarding wizard creates the team itself in step 2. */
+  defaultTeam: z.boolean().optional(),
 });
 
 export const updateOrganizationRequestSchema = z.object({

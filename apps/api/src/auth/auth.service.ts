@@ -85,11 +85,14 @@ export class AuthService {
     if (!user) throw new Error('user insert returned no row');
 
     this.ctx.patch({ userId: user.id });
-    try {
-      await this.organizations.bootstrapOrganization(user.id, { name: input.organizationName });
-    } catch (error) {
-      await this.db.delete(users).where(eq(users.id, user.id));
-      throw error;
+    // one-shot API path; the web flow omits this and runs the onboarding wizard
+    if (input.organizationName) {
+      try {
+        await this.organizations.bootstrapOrganization(user.id, { name: input.organizationName });
+      } catch (error) {
+        await this.db.delete(users).where(eq(users.id, user.id));
+        throw error;
+      }
     }
 
     await this.sendVerification(user.id, user.email);
@@ -187,7 +190,11 @@ export class AuthService {
    */
   async oidcLogin(
     claims: OidcClaims,
-  ): Promise<{ outcome: 'ok'; user: AuthUser; rawToken: string } | { outcome: 'account_exists' }> {
+  ): Promise<
+    | { outcome: 'ok'; user: AuthUser; rawToken: string; isNewUser: boolean }
+    | { outcome: 'account_exists' }
+  > {
+    let isNewUser = false;
     const [linked] = await this.db
       .select({ userId: oauthAccounts.userId })
       .from(oauthAccounts)
@@ -247,9 +254,8 @@ export class AuthService {
         emailAtProvider: claims.email,
       });
       this.ctx.patch({ userId: created.id });
-      await this.organizations.bootstrapOrganization(created.id, {
-        name: `${displayName}'s Workspace`,
-      });
+      // no auto-workspace: new users land in the onboarding wizard instead
+      isNewUser = true;
       if (!verified) await this.sendVerification(created.id, claims.email);
       await this.audit.log({
         action: 'USER_SIGNED_UP',
@@ -278,7 +284,7 @@ export class AuthService {
       metadata: { provider: claims.provider },
     });
     const rawToken = await this.openSession(userId);
-    return { outcome: 'ok', user, rawToken };
+    return { outcome: 'ok', user, rawToken, isNewUser };
   }
 
   private async sendVerification(userId: string, email: string): Promise<void> {
