@@ -3,8 +3,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { LogoutButton } from '../logout-button';
-
 interface NavItem {
   segment: string;
   label: string;
@@ -26,13 +24,9 @@ const NAV: NavItem[] = [
 export function Sidebar({
   organizationId,
   organizationName,
-  userName,
-  userEmail,
 }: {
   organizationId: string;
   organizationName: string;
-  userName: string;
-  userEmail: string;
 }) {
   const pathname = usePathname();
 
@@ -84,11 +78,6 @@ export function Sidebar({
         </ul>
       </nav>
 
-      <div className="border-t border-line p-4">
-        <p className="truncate text-sm font-bold text-primary-deep">{userName}</p>
-        <p className="mb-3 truncate text-xs text-muted">{userEmail}</p>
-        <LogoutButton />
-      </div>
     </aside>
   );
 }

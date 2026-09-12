@@ -5,6 +5,7 @@ import type { MeResponse } from '@cognitest/shared';
 
 import { apiGet } from '../../lib/api';
 import { Sidebar } from './sidebar';
+import { UserMenu } from './user-menu';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,20 +31,20 @@ export default async function OrganizationLayout({
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar
-        organizationId={organizationId}
-        organizationName={org.organization.name}
-        userName={me.user.displayName}
-        userEmail={me.user.email}
-      />
-      <main className="flex-1 overflow-y-auto p-8">
-        {me.user.status === 'pending_verification' && (
-          <p className="mb-6 rounded-card border border-line bg-primary-tint px-4 py-3 text-sm text-ink">
-            Check your inbox to verify your email address.
-          </p>
-        )}
-        {children}
-      </main>
+      <Sidebar organizationId={organizationId} organizationName={org.organization.name} />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="flex items-center justify-end border-b border-line bg-white px-8 py-3">
+          <UserMenu userName={me.user.displayName} userEmail={me.user.email} />
+        </header>
+        <main className="flex-1 overflow-y-auto p-8">
+          {me.user.status === 'pending_verification' && (
+            <p className="mb-6 rounded-card border border-line bg-primary-tint px-4 py-3 text-sm text-ink">
+              Check your inbox to verify your email address.
+            </p>
+          )}
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
