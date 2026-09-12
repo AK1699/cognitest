@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common';
+import type { MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
 
 import { AuditModule } from './audit/audit.module';
 import { AuthModule } from './auth/auth.module';
+import { ContextModule } from './common/context/context.module';
+import { RequestContextMiddleware } from './common/context/request-context.middleware';
 import { validateEnv } from './config/env.schema';
 import { DbModule } from './db/db.module';
 import { HealthModule } from './health/health.module';
@@ -26,6 +29,7 @@ import { UsersModule } from './users/users.module';
           process.env.NODE_ENV === 'development' ? { target: 'pino-pretty' } : undefined,
       },
     }),
+    ContextModule,
     DbModule,
     RedisModule,
     HealthModule,
@@ -38,4 +42,9 @@ import { UsersModule } from './users/users.module';
     AuditModule,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    // every request gets an AsyncLocalStorage context before any guard runs
+    consumer.apply(RequestContextMiddleware).forRoutes('*path');
+  }
+}

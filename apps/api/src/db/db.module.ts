@@ -2,16 +2,16 @@ import { Global, Inject, Injectable, Module } from '@nestjs/common';
 import type { OnApplicationShutdown } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { drizzle } from 'drizzle-orm/postgres-js';
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 
 import type { Env } from '../config/env.schema';
+import { DRIZZLE, PG_CLIENT } from './db.tokens';
+import type { Database } from './db.tokens';
 import * as schema from './schema';
+import { TenantDb } from './tenant-db.service';
 
-export const PG_CLIENT = Symbol('PG_CLIENT');
-export const DRIZZLE = Symbol('DRIZZLE');
-
-export type Database = PostgresJsDatabase<typeof schema>;
+export { DRIZZLE, PG_CLIENT } from './db.tokens';
+export type { Database } from './db.tokens';
 
 @Injectable()
 class DbShutdown implements OnApplicationShutdown {
@@ -28,7 +28,9 @@ class DbShutdown implements OnApplicationShutdown {
     {
       provide: PG_CLIENT,
       useFactory: (config: ConfigService<Env, true>) =>
-        postgres(config.get('DATABASE_URL', { infer: true })),
+        postgres(config.get('DATABASE_URL', { infer: true }), {
+          max: config.get('DB_POOL_MAX', { infer: true }),
+        }),
       inject: [ConfigService],
     },
     {
@@ -36,8 +38,9 @@ class DbShutdown implements OnApplicationShutdown {
       useFactory: (client: postgres.Sql): Database => drizzle(client, { schema }),
       inject: [PG_CLIENT],
     },
+    TenantDb,
     DbShutdown,
   ],
-  exports: [PG_CLIENT, DRIZZLE],
+  exports: [PG_CLIENT, DRIZZLE, TenantDb],
 })
 export class DbModule {}
