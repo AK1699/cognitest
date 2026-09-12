@@ -43,6 +43,13 @@
       "when": 1789190866330,
       "tag": "0005_drop_session_ip",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789191025063,
+      "tag": "0006_authz_domain",
+      "breakpoints": true
     }
   ]
 }
