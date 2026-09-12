@@ -14,6 +14,7 @@ import type { Organization } from '@cognitest/shared';
 import { AuditService } from '../audit/audit.service';
 import { AuthorizationService } from '../authz/authorization.service';
 import { RequestContextService } from '../common/context/request-context.service';
+import { isUniqueViolation } from '../common/db-errors';
 import { DRIZZLE } from '../db/db.tokens';
 import type { Database } from '../db/db.tokens';
 import { organizationMembers, organizations, roles, teamMembers, teams, users } from '../db/schema';
@@ -188,9 +189,27 @@ export class OrganizationsService {
     userId: string,
     input: { name: string; slug?: string; defaultTeam?: boolean },
   ): Promise<Organization> {
+    const base = input.slug ?? slugify(input.name);
+    // slug availability cannot be pre-checked: the app role's RLS view hides
+    // other tenants' organizations. Try the base slug; on a unique violation
+    // the whole transaction rolled back, so retry once with a random suffix.
+    try {
+      return await this.bootstrapWithSlug(userId, input, base);
+    } catch (error) {
+      if (!isUniqueViolation(error, 'organizations_slug_unique')) throw error;
+      if (input.slug) throw new ConflictException('An organization with that slug already exists');
+      const suffixed = `${base.slice(0, SLUG_MAX - 7)}-${randomUUID().slice(0, 6)}`;
+      return this.bootstrapWithSlug(userId, input, suffixed);
+    }
+  }
+
+  private async bootstrapWithSlug(
+    userId: string,
+    input: { name: string; defaultTeam?: boolean },
+    slug: string,
+  ): Promise<Organization> {
     const organizationId = randomUUID();
     const withDefaultTeam = input.defaultTeam !== false;
-    const slug = input.slug ?? (await this.availableSlug(slugify(input.name)));
 
     const [adminRole] = await this.db
       .select({ id: roles.id })
@@ -240,21 +259,6 @@ export class OrganizationsService {
     );
   }
 
-  /** Appends a short random suffix on slug collision. */
-  private async availableSlug(base: string): Promise<string> {
-    const [taken] = await this.db
-      .select({ id: organizations.id })
-      .from(organizations)
-      .where(eq(organizations.slug, base));
-    if (!taken) return base;
-    const suffixed = `${base.slice(0, SLUG_MAX - 7)}-${randomUUID().slice(0, 6)}`;
-    const [stillTaken] = await this.db
-      .select({ id: organizations.id })
-      .from(organizations)
-      .where(eq(organizations.slug, suffixed));
-    if (stillTaken) throw new ConflictException('Could not allocate a unique slug');
-    return suffixed;
-  }
 
   /** Keeps ip/userAgent when re-rooting the context for the bootstrap tx. */
   private carryHttpMeta(): { ip?: string; userAgent?: string } {
