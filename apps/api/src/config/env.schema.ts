@@ -36,7 +36,9 @@ export const envSchema = z
     MICROSOFT_CLIENT_SECRET: z.string().optional(),
     MICROSOFT_TENANT: z.string().default('common'),
 
-    MAIL_HOST: z.string().optional(),
+    // matches docker-compose Mailpit; set empty in environments without SMTP
+    // to fall back to the no-op json transport
+    MAIL_HOST: z.string().optional().default('localhost'),
     MAIL_PORT: z.coerce.number().int().positive().default(1025),
     MAIL_FROM: z.string().default('noreply@cognitest.local'),
 

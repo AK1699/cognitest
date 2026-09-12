@@ -101,20 +101,17 @@ function MicrosoftIcon() {
 
 /** OAuth providers — must stay in sync with the oauth_provider enum in @cognitest/shared. */
 export function SocialButtons() {
+  const buttonClasses =
+    'flex w-full items-center justify-center gap-2.5 rounded-[10px] border border-line bg-white px-4 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-primary-tint';
   return (
     <div className="flex flex-col gap-2.5">
-      <button
-        type="button"
-        className="flex w-full items-center justify-center gap-2.5 rounded-[10px] border border-line bg-white px-4 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-primary-tint"
-      >
+      {/* plain navigations: the API 302s to the provider */}
+      <a href="/api/auth/oidc/google/start" className={buttonClasses}>
         <GoogleIcon /> Continue with Google
-      </button>
-      <button
-        type="button"
-        className="flex w-full items-center justify-center gap-2.5 rounded-[10px] border border-line bg-white px-4 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-primary-tint"
-      >
+      </a>
+      <a href="/api/auth/oidc/microsoft/start" className={buttonClasses}>
         <MicrosoftIcon /> Continue with Microsoft
-      </button>
+      </a>
     </div>
   );
 }
