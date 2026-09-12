@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 
+import cookie from '@fastify/cookie';
 import helmet from '@fastify/helmet';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter } from '@nestjs/platform-fastify';
@@ -23,7 +24,11 @@ async function bootstrap(): Promise<void> {
   const config = app.get(ConfigService<Env, true>);
 
   await app.register(helmet);
-  app.enableCors({ origin: config.get('CORS_ORIGIN', { infer: true }).split(',') });
+  await app.register(cookie);
+  app.enableCors({
+    origin: config.get('CORS_ORIGIN', { infer: true }).split(','),
+    credentials: true,
+  });
   app.useGlobalPipes(new ZodValidationPipe());
   app.enableShutdownHooks();
 
