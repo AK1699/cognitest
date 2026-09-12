@@ -21,7 +21,7 @@ describe('migrations', () => {
   it('apply cleanly and are idempotent', async () => {
     await runMigrations();
     const applied = await appliedMigrationCount();
-    expect(applied).toBeGreaterThanOrEqual(3);
+    expect(applied).toBeGreaterThanOrEqual(4);
 
     // second run must be a no-op, not an error
     await expect(runMigrations()).resolves.not.toThrow();
