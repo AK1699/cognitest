@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 
 interface NavItem {
   segment: string;
@@ -21,24 +22,118 @@ const NAV: NavItem[] = [
   { segment: 'settings', label: 'Settings', icon: '⚒', enabled: true },
 ];
 
-export function Sidebar({
+interface OrganizationOption {
+  id: string;
+  name: string;
+}
+
+interface ProjectOption {
+  id: string;
+  key: string;
+  name: string;
+}
+
+function OrgSwitcher({
   organizationId,
   organizationName,
+  organizations,
 }: {
   organizationId: string;
   organizationName: string;
+  organizations: OrganizationOption[];
+}) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onClickOutside(event: MouseEvent) {
+      if (!ref.current?.contains(event.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, [open]);
+
+  const others = organizations.filter((org) => org.id !== organizationId);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className="flex w-full items-center justify-between rounded-[10px] border border-line bg-white px-3 py-2 text-left transition-colors hover:bg-primary-tint"
+      >
+        <span className="truncate text-sm font-bold text-primary-deep">{organizationName}</span>
+        <span aria-hidden className="ml-2 text-xs text-muted">
+          ⇅
+        </span>
+      </button>
+      {open && (
+        <div
+          role="menu"
+          className="absolute left-0 right-0 z-20 mt-2 rounded-card border border-line bg-white p-2 shadow-lg"
+        >
+          {others.length === 0 ? (
+            <p className="px-2 py-1.5 text-xs text-muted">No other workspaces</p>
+          ) : (
+            others.map((org) => (
+              <button
+                key={org.id}
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setOpen(false);
+                  router.push(`/${org.id}/dashboard`);
+                }}
+                className="block w-full truncate rounded-[8px] px-2 py-1.5 text-left text-sm font-semibold text-ink hover:bg-primary-tint"
+              >
+                {org.name}
+              </button>
+            ))
+          )}
+          <Link
+            href="/onboarding"
+            onClick={() => setOpen(false)}
+            className="mt-1 block rounded-[8px] border-t border-line px-2 pt-2 pb-1.5 text-sm font-semibold text-accent hover:text-accent-deep"
+          >
+            + New workspace
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function Sidebar({
+  organizationId,
+  organizationName,
+  organizations,
+  projects,
+}: {
+  organizationId: string;
+  organizationName: string;
+  organizations: OrganizationOption[];
+  projects: ProjectOption[];
 }) {
   const pathname = usePathname();
 
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-line bg-white">
-      <div className="border-b border-line px-5 py-4">
-        <Link href={`/${organizationId}/dashboard`} className="font-display text-xl font-bold tracking-tight text-primary-deep">
+      <div className="border-b border-line px-4 py-4">
+        <Link
+          href={`/${organizationId}/dashboard`}
+          className="mb-3 block px-1 font-display text-xl font-bold tracking-tight text-primary-deep"
+        >
           Cognitest
         </Link>
-        <p className="mt-1 truncate text-xs font-semibold uppercase tracking-wide text-muted">
-          {organizationName}
-        </p>
+        <OrgSwitcher
+          organizationId={organizationId}
+          organizationName={organizationName}
+          organizations={organizations}
+        />
       </div>
 
       <nav className="flex-1 overflow-y-auto p-3">
@@ -76,8 +171,37 @@ export function Sidebar({
             );
           })}
         </ul>
-      </nav>
 
+        <div className="mt-6">
+          <p className="mb-2 px-3 text-xs font-bold uppercase tracking-wide text-muted">
+            Projects
+          </p>
+          {projects.length === 0 ? (
+            <Link
+              href={`/${organizationId}/design`}
+              className="block px-3 text-sm text-muted hover:text-primary-deep"
+            >
+              Create one in Design →
+            </Link>
+          ) : (
+            <ul className="space-y-0.5">
+              {projects.map((project) => (
+                <li key={project.id}>
+                  <Link
+                    href={`/${organizationId}/design?project=${project.id}`}
+                    className="flex items-center gap-2 rounded-[10px] px-3 py-1.5 text-sm text-ink transition-colors hover:bg-primary-tint/60"
+                  >
+                    <span className="rounded bg-primary-tint px-1.5 py-0.5 font-mono text-[10px] font-bold text-primary-deep">
+                      {project.key}
+                    </span>
+                    <span className="truncate">{project.name}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </nav>
     </aside>
   );
 }

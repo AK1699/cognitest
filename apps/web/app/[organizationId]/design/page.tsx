@@ -12,10 +12,13 @@ interface ProjectsResponse {
 
 export default async function DesignPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ organizationId: string }>;
+  searchParams: Promise<{ project?: string }>;
 }) {
   const { organizationId } = await params;
+  const { project } = await searchParams;
   const projects = await apiGet<ProjectsResponse>(`/organizations/${organizationId}/projects`);
 
   return (
@@ -25,7 +28,11 @@ export default async function DesignPage({
         Requirements become test plans; plans are reviewed and approved per version, then broken
         down into suites and cases.
       </p>
-      <DesignBoard organizationId={organizationId} initialProjects={projects?.projects ?? []} />
+      <DesignBoard
+        organizationId={organizationId}
+        initialProjects={projects?.projects ?? []}
+        initialSelectedId={project}
+      />
     </div>
   );
 }

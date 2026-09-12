@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 interface Project {
@@ -61,13 +62,24 @@ const ghostButtonClasses =
 export function DesignBoard({
   organizationId,
   initialProjects,
+  initialSelectedId,
 }: {
   organizationId: string;
   initialProjects: Project[];
+  initialSelectedId?: string;
 }) {
+  const router = useRouter();
   const [projects, setProjects] = useState(initialProjects);
-  const [selected, setSelected] = useState<string | null>(initialProjects[0]?.id ?? null);
+  const [selected, setSelected] = useState<string | null>(
+    initialProjects.find((p) => p.id === initialSelectedId)?.id ?? initialProjects[0]?.id ?? null,
+  );
   const [error, setError] = useState<string | null>(null);
+
+  // keep the sidebar's project deep-links honest
+  function select(projectId: string) {
+    setSelected(projectId);
+    router.replace(`/${organizationId}/design?project=${projectId}`, { scroll: false });
+  }
 
   const base = `/api/organizations/${organizationId}`;
 
@@ -91,7 +103,8 @@ export function DesignBoard({
         body: JSON.stringify({ name, key }),
       });
       setProjects((rows) => [...rows, data.project]);
-      setSelected(data.project.id);
+      select(data.project.id);
+      router.refresh(); // the sidebar's project list is server-rendered
     });
   }
 
@@ -108,7 +121,7 @@ export function DesignBoard({
           <button
             key={project.id}
             type="button"
-            onClick={() => setSelected(project.id)}
+            onClick={() => select(project.id)}
             className={`rounded-[10px] px-3.5 py-2 text-sm font-semibold transition-colors ${
               selected === project.id
                 ? 'bg-primary-deep text-white'
