@@ -13,7 +13,11 @@ export const ACTIONS = [
 ] as const;
 export type Action = (typeof ACTIONS)[number];
 
-/** Governance resources: org administration, gated by explicit per-role grants. */
+/**
+ * Governance resources: org administration and access boundaries, gated by
+ * explicit per-role grants. `project` lives here because project.configure
+ * doubles as the see-every-project grant — it must stay admin/manager only.
+ */
 export const GOVERNANCE_RESOURCES = [
   'organization',
   'member',
@@ -21,11 +25,11 @@ export const GOVERNANCE_RESOURCES = [
   'team',
   'role',
   'audit_log',
+  'project',
 ] as const;
 
 /** Product resources: test artefacts, gated mechanically by the role/action matrix. */
 export const PRODUCT_RESOURCES = [
-  'project',
   'requirement',
   'test_plan',
   'test_suite',
@@ -120,22 +124,31 @@ const PRODUCT_ROLE_ACTIONS: Record<SystemRole, readonly Action[]> = {
  * Governance grants are explicit, not matrix-derived: a manager may run test
  * delivery without being able to change members, roles or the organization.
  */
+const MEMBER_BASE: readonly PermissionKey[] = [
+  'organization.read',
+  'member.read',
+  'team.read',
+  'project.read',
+  'project.create',
+  'project.update',
+];
+
 const GOVERNANCE_ROLE_GRANTS: Record<Exclude<SystemRole, 'admin'>, readonly PermissionKey[]> = {
   manager: [
-    'organization.read',
-    'member.read',
-    'team.read',
+    ...MEMBER_BASE,
     'team.create',
     'team.update',
     'invitation.read',
     'invitation.create',
     'role.read',
     'audit_log.read',
+    // configure doubles as the see-every-project grant (spec §28 project scope)
+    'project.configure',
   ],
-  tester: ['organization.read', 'member.read', 'team.read'],
-  business_analyst: ['organization.read', 'member.read', 'team.read'],
-  developer: ['organization.read', 'member.read', 'team.read'],
-  viewer: ['organization.read', 'member.read', 'team.read'],
+  tester: MEMBER_BASE,
+  business_analyst: MEMBER_BASE,
+  developer: MEMBER_BASE,
+  viewer: ['organization.read', 'member.read', 'team.read', 'project.read'],
 };
 
 function productKeysFor(role: SystemRole): PermissionKey[] {

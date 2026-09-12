@@ -15,6 +15,7 @@ import type { OidcClaims } from './services/oidc.service';
 
 import { AuditService } from '../audit/audit.service';
 import { RequestContextService } from '../common/context/request-context.service';
+import { isUniqueViolation } from '../common/db-errors';
 import { DRIZZLE } from '../db/db.tokens';
 import type { Database } from '../db/db.tokens';
 import { oauthAccounts, users } from '../db/schema';
@@ -77,7 +78,7 @@ export class AuthService {
       .returning(AUTH_USER_COLUMNS)
       .catch((error: unknown) => {
         // unique race with the pre-check above
-        throw String(error).includes('duplicate key')
+        throw isUniqueViolation(error)
           ? new ConflictException('Email or username is already in use')
           : error;
       });
@@ -121,7 +122,8 @@ export class AuthService {
     await this.audit.log({ action: 'USER_LOGIN', resourceType: 'user', resourceId: user.id });
 
     const rawToken = await this.openSession(user.id);
-    const { passwordHash: _omitted, ...authUser } = user;
+    const { passwordHash, ...authUser } = user;
+    void passwordHash; // never leaves the service
     return { user: authUser, rawToken };
   }
 

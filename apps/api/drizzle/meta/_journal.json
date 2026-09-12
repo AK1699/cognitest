@@ -64,6 +64,13 @@
       "when": 1789191847068,
       "tag": "0008_audit_user_events",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1789192573495,
+      "tag": "0009_invitation_resolver",
+      "breakpoints": true
     }
   ]
 }

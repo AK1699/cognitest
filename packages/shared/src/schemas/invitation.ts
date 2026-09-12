@@ -16,3 +16,13 @@ export const invitationSchema = z.object({
   updatedAt: z.coerce.date(),
 });
 export type Invitation = z.infer<typeof invitationSchema>;
+
+export const createInvitationRequestSchema = z.object({
+  email: z.email(),
+  roleId: z.uuid(),
+  teamId: z.uuid().optional(),
+});
+
+export const acceptInvitationRequestSchema = z.object({
+  token: z.string().length(43),
+});

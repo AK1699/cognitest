@@ -10,6 +10,18 @@ import { MAILER } from '../../src/auth/services/mail.service';
 import { runMigrations } from '../../src/db/migrate';
 import { runSeed } from '../../src/db/seed';
 
+/** Seed edits change role permissions — cached sets from earlier runs must go. */
+async function flushAuthzCaches(): Promise<void> {
+  const { default: Redis } = await import('ioredis');
+  const redis = new Redis(process.env.REDIS_URL ?? 'redis://localhost:6379');
+  try {
+    const keys = await redis.keys('authz:*');
+    if (keys.length > 0) await redis.del(...keys);
+  } finally {
+    await redis.quit();
+  }
+}
+
 export interface CapturedMail {
   to: string;
   subject: string;
@@ -37,6 +49,7 @@ export async function createTestApp(
 ): Promise<{ app: NestFastifyApplication; mailer: CapturingMailer }> {
   await runMigrations();
   await runSeed();
+  await flushAuthzCaches();
 
   const mailer = new CapturingMailer();
   let builder = Test.createTestingModule({ imports: [AppModule] })
@@ -77,14 +90,17 @@ export async function cleanupUsers(
     join users u on u.id = om.user_id where u.email like ${emailPattern}`;
   const orgIds = orgs.map((o) => o.id as string);
   if (orgIds.length > 0) {
-    await owner`delete from audit_logs where organization_id in ${owner(orgIds)}`;
-    await owner`delete from invitations where organization_id in ${owner(orgIds)}`;
-    await owner`delete from project_members where organization_id in ${owner(orgIds)}`;
-    await owner`delete from projects where organization_id in ${owner(orgIds)}`;
-    await owner`delete from team_members where organization_id in ${owner(orgIds)}`;
-    await owner`delete from teams where organization_id in ${owner(orgIds)}`;
-    await owner`delete from organization_members where organization_id in ${owner(orgIds)}`;
-    await owner`delete from organizations where id in ${owner(orgIds)}`;
+    await owner`delete from audit_logs where organization_id = any(${orgIds}::uuid[])`;
+    await owner`delete from invitations where organization_id = any(${orgIds}::uuid[])`;
+    await owner`delete from project_members where organization_id = any(${orgIds}::uuid[])`;
+    await owner`delete from projects where organization_id = any(${orgIds}::uuid[])`;
+    await owner`delete from team_members where organization_id = any(${orgIds}::uuid[])`;
+    await owner`delete from teams where organization_id = any(${orgIds}::uuid[])`;
+    await owner`delete from organization_members where organization_id = any(${orgIds}::uuid[])`;
+    await owner`delete from role_permissions where role_id in
+      (select id from roles where organization_id = any(${orgIds}::uuid[]))`;
+    await owner`delete from roles where organization_id = any(${orgIds}::uuid[])`;
+    await owner`delete from organizations where id = any(${orgIds}::uuid[])`;
   }
   await owner`delete from audit_logs where actor_user_id in
     (select id from users where email like ${emailPattern})`;

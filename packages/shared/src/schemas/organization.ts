@@ -30,3 +30,16 @@ export const organizationMemberSchema = z.object({
   updatedAt: z.coerce.date(),
 });
 export type OrganizationMember = z.infer<typeof organizationMemberSchema>;
+
+export const createOrganizationRequestSchema = z.object({
+  name: z.string().min(1).max(100),
+  slug: organizationSlugSchema.optional(),
+});
+
+export const updateOrganizationRequestSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  onboardingStatus: z.enum(ONBOARDING_STATUSES).optional(),
+  onboardingStep: z.string().max(100).nullable().optional(),
+});
+
+export const updateMemberRequestSchema = z.object({ roleId: z.uuid() });

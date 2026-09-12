@@ -33,3 +33,22 @@ export const permissionSchema = z.object({
   updatedAt: z.coerce.date(),
 });
 export type Permission = z.infer<typeof permissionSchema>;
+
+export const customRoleKeySchema = z
+  .string()
+  .regex(/^[a-z0-9_]{2,64}$/, 'Role key must be lowercase snake_case');
+
+export const createRoleRequestSchema = z.object({
+  key: customRoleKeySchema,
+  name: z.string().min(1).max(100),
+  description: z.string().max(500).optional(),
+});
+
+export const updateRoleRequestSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  description: z.string().max(500).nullable().optional(),
+});
+
+export const setRolePermissionsRequestSchema = z.object({
+  permissionKeys: z.array(permissionKeySchema).max(500),
+});

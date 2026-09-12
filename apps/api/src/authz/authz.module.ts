@@ -15,6 +15,12 @@ import { ProjectAccessPolicy } from './policies/project-access.policy';
     ProjectAccessGuard,
     ProjectAccessPolicy,
   ],
-  exports: [AuthorizationService, TenantGuard, PermissionGuard, ProjectAccessGuard],
+  exports: [
+    AuthorizationService,
+    TenantGuard,
+    PermissionGuard,
+    ProjectAccessGuard,
+    ProjectAccessPolicy,
+  ],
 })
 export class AuthzModule {}

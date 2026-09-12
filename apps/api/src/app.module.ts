@@ -21,6 +21,7 @@ import { DbModule } from './db/db.module';
 import { HealthModule } from './health/health.module';
 import { InvitationsModule } from './invitations/invitations.module';
 import { OrganizationsModule } from './organizations/organizations.module';
+import { ProjectsModule } from './projects/projects.module';
 import { RbacModule } from './rbac/rbac.module';
 import { REDIS, RedisModule } from './redis/redis.module';
 import { TeamsModule } from './teams/teams.module';
@@ -55,6 +56,7 @@ import { UsersModule } from './users/users.module';
     AuthzModule,
     UsersModule,
     OrganizationsModule,
+    ProjectsModule,
     TeamsModule,
     InvitationsModule,
     RbacModule,
