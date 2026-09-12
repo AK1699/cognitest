@@ -6,24 +6,27 @@ export const usernameSchema = z
   .string()
   .regex(/^[a-z0-9_-]{3,32}$/i, 'Username must be 3–32 letters, digits, _ or -');
 
-export const passwordSchema = z.string().min(12).max(128);
+export const passwordSchema = z
+  .string()
+  .min(12, 'Password must be at least 12 characters')
+  .max(128, 'Password must be at most 128 characters');
 
 /** Raw one-time tokens are 32 random bytes base64url-encoded → 43 chars. */
 export const rawTokenSchema = z.string().length(43);
 
 export const signupRequestSchema = z.object({
-  email: z.email(),
+  email: z.email('Enter a valid email address'),
   username: usernameSchema,
   password: passwordSchema,
-  displayName: z.string().min(1).max(100),
+  displayName: z.string().min(1, 'Display name is required').max(100),
   /** Workspace to bootstrap (spec §8); the slug is generated server-side. */
-  organizationName: z.string().min(1).max(100),
+  organizationName: z.string().min(1, 'Workspace name is required').max(100),
 });
 export type SignupRequest = z.infer<typeof signupRequestSchema>;
 
 export const loginRequestSchema = z.object({
-  email: z.email(),
-  password: z.string().min(1).max(128),
+  email: z.email('Enter a valid email address'),
+  password: z.string().min(1, 'Password is required').max(128),
 });
 export type LoginRequest = z.infer<typeof loginRequestSchema>;
 

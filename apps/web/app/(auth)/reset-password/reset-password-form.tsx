@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
+import { resetPasswordRequestSchema } from '@cognitest/shared';
+
 import { AuthForm, FormError, useAuthSubmit } from '../auth-form';
 import { Field, PrimaryButton } from '../components';
 
@@ -25,7 +27,12 @@ export function ResetPasswordForm() {
   return (
     <AuthForm
       onSubmit={(fields) =>
-        submit('/api/auth/reset-password', { token, password: fields.password }, '/login')
+        submit(
+          '/api/auth/reset-password',
+          { token, password: fields.password },
+          '/login',
+          resetPasswordRequestSchema,
+        )
       }
     >
       <FormError error={error} />

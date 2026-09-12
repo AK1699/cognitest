@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
+import type { ZodType } from 'zod';
 
 /** Posts JSON to the proxied API and surfaces validation/auth errors inline. */
 export function useAuthSubmit() {
@@ -10,9 +11,22 @@ export function useAuthSubmit() {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
-  async function submit(url: string, body: Record<string, unknown>, redirectTo: string) {
-    setPending(true);
+  async function submit(
+    url: string,
+    body: Record<string, unknown>,
+    redirectTo: string,
+    schema?: ZodType,
+  ) {
     setError(null);
+    // client-side validation first: instant, field-specific feedback
+    if (schema) {
+      const parsed = schema.safeParse(body);
+      if (!parsed.success) {
+        setError(parsed.error.issues[0]?.message ?? 'Check the highlighted fields');
+        return;
+      }
+    }
+    setPending(true);
     try {
       const res = await fetch(url, {
         method: 'POST',
@@ -21,8 +35,9 @@ export function useAuthSubmit() {
       });
       if (!res.ok) {
         const payload = (await res.json().catch(() => null)) as { message?: unknown } | null;
+        // API validation errors come as a message array ("field: reason")
         const message = Array.isArray(payload?.message)
-          ? String(payload.message[0])
+          ? payload.message.map(String).join('. ')
           : typeof payload?.message === 'string'
             ? payload.message
             : 'Something went wrong — try again';

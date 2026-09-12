@@ -1,5 +1,7 @@
 'use client';
 
+import { signupRequestSchema } from '@cognitest/shared';
+
 import { AuthForm, FormError, useAuthSubmit } from '../auth-form';
 import { Field, PrimaryButton } from '../components';
 
@@ -19,6 +21,7 @@ export function SignupForm() {
             organizationName: fields.organizationName,
           },
           '/',
+          signupRequestSchema,
         )
       }
     >

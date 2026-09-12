@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
+import { loginRequestSchema } from '@cognitest/shared';
+
 import { AuthForm, FormError, useAuthSubmit } from '../auth-form';
 import { Field, PrimaryButton } from '../components';
 
@@ -22,7 +24,12 @@ export function LoginForm() {
   return (
     <AuthForm
       onSubmit={(fields) =>
-        submit('/api/auth/login', { email: fields.email, password: fields.password }, redirectTo)
+        submit(
+          '/api/auth/login',
+          { email: fields.email, password: fields.password },
+          redirectTo,
+          loginRequestSchema,
+        )
       }
     >
       <FormError error={error ?? oidcError} />
