@@ -35,8 +35,13 @@ jobs:
           --health-retries 10
 
     env:
-      DATABASE_URL: postgres://cognitest:cognitest@localhost:5432/cognitest
+      # runtime role (RLS applies) — created in the "create app role" step
+      DATABASE_URL: postgres://cognitest_app:cognitest_app@localhost:5432/cognitest
+      # owner role for migrations/seed (RLS bypass is intentional there)
+      DATABASE_URL_MIGRATIONS: postgres://cognitest:cognitest@localhost:5432/cognitest
       REDIS_URL: redis://localhost:6379
+      # no SMTP service in CI — empty host selects the no-op json transport
+      MAIL_HOST: ''
 
     steps:
       - uses: actions/checkout@v4
@@ -57,6 +62,12 @@ jobs:
       - run: pnpm typecheck
 
       - run: pnpm build
+
+      # non-owner runtime role; locally the compose init script creates it
+      - name: create app role
+        run: |
+          psql "$DATABASE_URL_MIGRATIONS" -c \
+            "CREATE ROLE cognitest_app LOGIN PASSWORD 'cognitest_app'"
 
       - run: pnpm db:migrate
 

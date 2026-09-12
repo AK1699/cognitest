@@ -1,102 +1,182 @@
-// Permission catalogue. Keys use the `resource:ACTION` format, e.g. `project:READ`.
-
-export const RESOURCES = [
-  'organization',
-  'team',
-  'user',
-  'invitation',
-  'project',
-  'requirement',
-  'test_plan',
-  'test_suite',
-  'test_case',
-  'approval',
-  'automation',
-  'api_test',
-  'performance_test',
-  'security_test',
-  'execution',
-  'execution_agent',
-  'integration',
-  'impact_analysis',
-  'audit_log',
-] as const;
-export type Resource = (typeof RESOURCES)[number];
+// Permission catalogue. Keys use the `resource.action` format, e.g. `test_plan.approve`.
+// Lowercase on both sides — one canonical representation everywhere (DB, guards, UI).
 
 export const ACTIONS = [
-  'READ',
-  'CREATE',
-  'UPDATE',
-  'DELETE',
-  'EXECUTE',
-  'CANCEL',
-  'APPROVE',
-  'CONFIG',
+  'read',
+  'create',
+  'update',
+  'delete',
+  'configure',
+  'execute',
+  'cancel',
+  'approve',
 ] as const;
 export type Action = (typeof ACTIONS)[number];
 
-export type PermissionKey = `${Resource}:${Action}`;
-
-const CRUD = ['READ', 'CREATE', 'UPDATE', 'DELETE'] as const satisfies readonly Action[];
-
-/** Actions each resource supports. CRUD by default, with per-resource overrides. */
-export const RESOURCE_ACTIONS: Record<Resource, readonly Action[]> = {
-  organization: [...CRUD, 'CONFIG'],
-  team: CRUD,
-  user: CRUD,
-  invitation: CRUD,
-  project: CRUD,
-  requirement: CRUD,
-  test_plan: CRUD,
-  test_suite: CRUD,
-  test_case: CRUD,
-  approval: [...CRUD, 'APPROVE'],
-  automation: [...CRUD, 'CONFIG'],
-  api_test: [...CRUD, 'CONFIG'],
-  performance_test: [...CRUD, 'CONFIG'],
-  security_test: [...CRUD, 'CONFIG'],
-  execution: [...CRUD, 'EXECUTE', 'CANCEL'],
-  execution_agent: [...CRUD, 'CONFIG'],
-  integration: [...CRUD, 'CONFIG'],
-  impact_analysis: CRUD,
-  audit_log: ['READ'],
-};
-
-export const PERMISSION_KEYS: readonly PermissionKey[] = RESOURCES.flatMap((resource) =>
-  RESOURCE_ACTIONS[resource].map((action): PermissionKey => `${resource}:${action}`),
-);
-
-export const SYSTEM_ROLES = ['owner', 'admin', 'member', 'viewer'] as const;
-export type SystemRole = (typeof SYSTEM_ROLES)[number];
-
-/** Test artefact resources members may create and update. */
-const TEST_ARTEFACTS = [
+/**
+ * Governance resources: org administration and access boundaries, gated by
+ * explicit per-role grants. `project` lives here because project.configure
+ * doubles as the see-every-project grant — it must stay admin/manager only.
+ */
+export const GOVERNANCE_RESOURCES = [
+  'organization',
+  'member',
+  'invitation',
+  'team',
+  'role',
+  'audit_log',
   'project',
+] as const;
+
+/** Product resources: test artefacts, gated mechanically by the role/action matrix. */
+export const PRODUCT_RESOURCES = [
   'requirement',
   'test_plan',
   'test_suite',
   'test_case',
-  'approval',
   'automation',
-  'api_test',
-  'performance_test',
-  'security_test',
-] as const satisfies readonly Resource[];
+  'api',
+  'performance',
+  'security',
+  'integration',
+  'agent',
+] as const;
 
-const ALL_READ = RESOURCES.map((r): PermissionKey => `${r}:READ`);
+export const RESOURCES = [...GOVERNANCE_RESOURCES, ...PRODUCT_RESOURCES] as const;
+export type Resource = (typeof RESOURCES)[number];
+
+export type PermissionKey = `${Resource}.${Action}`;
+
+const CRUD = ['read', 'create', 'update', 'delete'] as const satisfies readonly Action[];
+const RUNNABLE = [...CRUD, 'configure', 'execute', 'cancel'] as const satisfies readonly Action[];
+
+/** Actions each resource supports. */
+export const RESOURCE_ACTIONS: Record<Resource, readonly Action[]> = {
+  organization: ['read', 'update', 'delete', 'configure'],
+  member: ['read', 'update', 'delete'],
+  invitation: ['read', 'create', 'delete'],
+  team: CRUD,
+  role: CRUD,
+  audit_log: ['read'],
+  project: [...CRUD, 'configure'],
+  requirement: CRUD,
+  test_plan: [...CRUD, 'approve', 'execute'],
+  test_suite: CRUD,
+  test_case: CRUD,
+  automation: RUNNABLE,
+  api: RUNNABLE,
+  performance: RUNNABLE,
+  security: RUNNABLE,
+  integration: [...CRUD, 'configure'],
+  agent: [...CRUD, 'configure'],
+};
+
+export const PERMISSION_KEYS: readonly PermissionKey[] = RESOURCES.flatMap((resource) =>
+  RESOURCE_ACTIONS[resource].map((action): PermissionKey => `${resource}.${action}`),
+);
+
+export function permissionKey(resource: Resource, action: Action): PermissionKey {
+  return `${resource}.${action}`;
+}
+
+export const SYSTEM_ROLES = [
+  'admin',
+  'manager',
+  'tester',
+  'business_analyst',
+  'developer',
+  'viewer',
+] as const;
+export type SystemRole = (typeof SYSTEM_ROLES)[number];
+
+export const SYSTEM_ROLE_NAMES: Record<SystemRole, string> = {
+  admin: 'Admin',
+  manager: 'Manager',
+  tester: 'Tester',
+  business_analyst: 'Business Analyst',
+  developer: 'Developer',
+  viewer: 'Viewer',
+};
+
+export const SYSTEM_ROLE_DESCRIPTIONS: Record<SystemRole, string> = {
+  admin: 'Full access to everything in the organization',
+  manager: 'Manages teams, projects and test delivery; cannot delete or administer members',
+  tester: 'Creates, configures and executes tests',
+  business_analyst: 'Authors requirements and test plans; approves test plans',
+  developer: 'Works on test artefacts and runs executions',
+  viewer: 'Read-only access',
+};
 
 /**
- * Starter default permission matrix for the system roles. Not a finalised
- * product decision — revisit when the RBAC phase lands.
+ * Product-resource action matrix (architecture spec §25). Applied mechanically
+ * to every product resource, intersected with the actions it supports.
  */
-export const SYSTEM_ROLE_PERMISSIONS: Record<SystemRole, readonly PermissionKey[]> = {
-  owner: PERMISSION_KEYS,
-  admin: PERMISSION_KEYS,
-  member: [
-    ...ALL_READ,
-    ...TEST_ARTEFACTS.flatMap((r): PermissionKey[] => [`${r}:CREATE`, `${r}:UPDATE`]),
-    'execution:EXECUTE',
-    'execution:CANCEL',
-  ],
-  viewer: ALL_READ,
+const PRODUCT_ROLE_ACTIONS: Record<SystemRole, readonly Action[]> = {
+  admin: ACTIONS,
+  manager: ['read', 'create', 'update', 'configure', 'execute', 'cancel', 'approve'],
+  tester: ['read', 'create', 'update', 'configure', 'execute', 'cancel'],
+  business_analyst: ['read', 'create', 'update', 'configure', 'approve'],
+  developer: ['read', 'create', 'update', 'execute', 'cancel'],
+  viewer: ['read'],
 };
+
+/**
+ * Governance grants are explicit, not matrix-derived: a manager may run test
+ * delivery without being able to change members, roles or the organization.
+ */
+const MEMBER_BASE: readonly PermissionKey[] = [
+  'organization.read',
+  'member.read',
+  'team.read',
+  'project.read',
+  'project.create',
+  'project.update',
+];
+
+const GOVERNANCE_ROLE_GRANTS: Record<Exclude<SystemRole, 'admin'>, readonly PermissionKey[]> = {
+  manager: [
+    ...MEMBER_BASE,
+    'team.create',
+    'team.update',
+    'invitation.read',
+    'invitation.create',
+    'role.read',
+    'audit_log.read',
+    // configure doubles as the see-every-project grant (spec §28 project scope)
+    'project.configure',
+  ],
+  tester: MEMBER_BASE,
+  business_analyst: MEMBER_BASE,
+  developer: MEMBER_BASE,
+  viewer: ['organization.read', 'member.read', 'team.read', 'project.read'],
+};
+
+function productKeysFor(role: SystemRole): PermissionKey[] {
+  const allowed = new Set(PRODUCT_ROLE_ACTIONS[role]);
+  return PRODUCT_RESOURCES.flatMap((resource) =>
+    RESOURCE_ACTIONS[resource]
+      .filter((action) => allowed.has(action))
+      .map((action): PermissionKey => `${resource}.${action}`),
+  );
+}
+
+export const SYSTEM_ROLE_PERMISSIONS: Record<SystemRole, readonly PermissionKey[]> = {
+  admin: PERMISSION_KEYS,
+  manager: [...GOVERNANCE_ROLE_GRANTS.manager, ...productKeysFor('manager')],
+  tester: [...GOVERNANCE_ROLE_GRANTS.tester, ...productKeysFor('tester')],
+  business_analyst: [
+    ...GOVERNANCE_ROLE_GRANTS.business_analyst,
+    ...productKeysFor('business_analyst'),
+  ],
+  developer: [...GOVERNANCE_ROLE_GRANTS.developer, ...productKeysFor('developer')],
+  viewer: [...GOVERNANCE_ROLE_GRANTS.viewer, ...productKeysFor('viewer')],
+};
+
+/** Splits a permission key back into its resource/action parts. */
+export function parsePermissionKey(key: PermissionKey): { resource: Resource; action: Action } {
+  const separator = key.lastIndexOf('.');
+  return {
+    resource: key.slice(0, separator) as Resource,
+    action: key.slice(separator + 1) as Action,
+  };
+}

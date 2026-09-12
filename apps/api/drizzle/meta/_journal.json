@@ -22,6 +22,62 @@
       "when": 1789052517037,
       "tag": "0002_rbac",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789190698464,
+      "tag": "0003_rbac_catalogue",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789190856528,
+      "tag": "0004_auth_identity",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789190866330,
+      "tag": "0005_drop_session_ip",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789191025063,
+      "tag": "0006_authz_domain",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1789191219192,
+      "tag": "0007_rls",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1789191847068,
+      "tag": "0008_audit_user_events",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1789192573495,
+      "tag": "0009_invitation_resolver",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1789192573496,
+      "tag": "0010_schema_categorization",
+      "breakpoints": true
     }
   ]
 }

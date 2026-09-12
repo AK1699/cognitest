@@ -5,7 +5,11 @@ import { loadEnv } from '../src/config/load-env';
 import { runMigrations } from '../src/db/migrate';
 
 loadEnv();
-const url = process.env.DATABASE_URL ?? 'postgres://cognitest:cognitest@localhost:5432/cognitest';
+// the drizzle bookkeeping schema belongs to the owner — the app role can't see it
+const url =
+  process.env.DATABASE_URL_MIGRATIONS ??
+  process.env.DATABASE_URL ??
+  'postgres://cognitest:cognitest@localhost:5432/cognitest';
 
 async function appliedMigrationCount(): Promise<number> {
   const client = postgres(url, { max: 1 });
@@ -21,7 +25,7 @@ describe('migrations', () => {
   it('apply cleanly and are idempotent', async () => {
     await runMigrations();
     const applied = await appliedMigrationCount();
-    expect(applied).toBeGreaterThanOrEqual(3);
+    expect(applied).toBeGreaterThanOrEqual(4);
 
     // second run must be a no-op, not an error
     await expect(runMigrations()).resolves.not.toThrow();

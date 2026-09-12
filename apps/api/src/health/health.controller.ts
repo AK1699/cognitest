@@ -3,8 +3,10 @@ import type { FastifyReply } from 'fastify';
 
 import type { HealthResponse } from '@cognitest/shared';
 
+import { Public } from '../common/decorators/public.decorator';
 import { HealthService } from './health.service';
 
+@Public()
 @Controller('health')
 export class HealthController {
   constructor(private readonly healthService: HealthService) {}

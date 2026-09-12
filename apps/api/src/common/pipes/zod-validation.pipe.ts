@@ -22,7 +22,16 @@ export class ZodValidationPipe implements PipeTransform {
     }
     const result = schema.safeParse(value);
     if (!result.success) {
-      throw new BadRequestException(z.treeifyError(result.error));
+      // flat human-readable messages up top (what clients display), full tree below
+      const message = result.error.issues.map((issue) =>
+        issue.path.length > 0 ? `${issue.path.join('.')}: ${issue.message}` : issue.message,
+      );
+      throw new BadRequestException({
+        statusCode: 400,
+        error: 'Bad Request',
+        message,
+        errors: z.treeifyError(result.error),
+      });
     }
     return result.data;
   }
