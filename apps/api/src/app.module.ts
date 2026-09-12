@@ -11,6 +11,9 @@ import { AuditModule } from './audit/audit.module';
 import { AuthModule } from './auth/auth.module';
 import { AuthGuard } from './auth/guards/auth.guard';
 import { CsrfGuard } from './auth/guards/csrf.guard';
+import { AuthzModule } from './authz/authz.module';
+import { PermissionGuard } from './authz/guards/permission.guard';
+import { TenantGuard } from './authz/guards/tenant.guard';
 import { ContextModule } from './common/context/context.module';
 import { RequestContextMiddleware } from './common/context/request-context.middleware';
 import { validateEnv } from './config/env.schema';
@@ -49,6 +52,7 @@ import { UsersModule } from './users/users.module';
     }),
     HealthModule,
     AuthModule,
+    AuthzModule,
     UsersModule,
     OrganizationsModule,
     TeamsModule,
@@ -56,11 +60,14 @@ import { UsersModule } from './users/users.module';
     RbacModule,
     AuditModule,
   ],
-  // global guards run in registration order: rate limit → authn → CSRF
+  // global guards run in registration order (spec §29):
+  // rate limit → authn → CSRF → tenant → permission
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: CsrfGuard },
+    { provide: APP_GUARD, useClass: TenantGuard },
+    { provide: APP_GUARD, useClass: PermissionGuard },
   ],
 })
 export class AppModule implements NestModule {
