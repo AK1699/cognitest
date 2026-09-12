@@ -3,8 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import { createTransport } from 'nodemailer';
 
 import type { Env } from '../config/env.schema';
+import { OrganizationsModule } from '../organizations/organizations.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { OidcController } from './oidc.controller';
+import { OidcService } from './services/oidc.service';
 import { AuthGuard } from './guards/auth.guard';
 import { CsrfGuard } from './guards/csrf.guard';
 import { CryptoService } from './services/crypto.service';
@@ -14,9 +17,11 @@ import { SessionService } from './services/session.service';
 import { TokenService } from './services/token.service';
 
 @Module({
-  controllers: [AuthController],
+  imports: [OrganizationsModule],
+  controllers: [AuthController, OidcController],
   providers: [
     AuthService,
+    OidcService,
     CryptoService,
     PasswordService,
     TokenService,

@@ -11,9 +11,9 @@ export const auditLogs = pgTable(
   'audit_logs',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id')
-      .notNull()
-      .references(() => organizations.id),
+    // null = user-scoped security event (login, password reset) with no tenant;
+    // such rows are invisible to tenants — only ops tooling reads them
+    organizationId: uuid('organization_id').references(() => organizations.id),
     // null for system-originated events
     actorUserId: uuid('actor_user_id').references(() => users.id),
     action: text('action').notNull(),
