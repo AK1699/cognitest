@@ -1,4 +1,6 @@
-import { index, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { index, jsonb, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+
+import { auditSchema } from './schemas';
 
 import { organizations } from './organizations';
 import { users } from './users';
@@ -7,7 +9,7 @@ import { users } from './users';
  * Immutable security/audit trail. No updated_at by design; UPDATE/DELETE are
  * revoked from the app role and no RLS policy permits them.
  */
-export const auditLogs = pgTable(
+export const auditLogs = auditSchema.table(
   'audit_logs',
   {
     id: uuid('id').primaryKey().defaultRandom(),

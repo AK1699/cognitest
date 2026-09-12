@@ -1,4 +1,6 @@
-import { foreignKey, index, pgEnum, pgTable, text, unique, uuid } from 'drizzle-orm/pg-core';
+import { foreignKey, index, pgEnum, text, unique, uuid } from 'drizzle-orm/pg-core';
+
+import { productSchema } from './schemas';
 
 import { PROJECT_STATUSES } from '@cognitest/shared';
 
@@ -8,7 +10,7 @@ import { users } from './users';
 
 export const projectStatus = pgEnum('project_status', PROJECT_STATUSES);
 
-export const projects = pgTable(
+export const projects = productSchema.table(
   'projects',
   {
     id: id(),
@@ -37,7 +39,7 @@ export const projects = pgTable(
  * role supplies the permissions. Holders of project.configure (admin/manager)
  * implicitly access every project without a row here.
  */
-export const projectMembers = pgTable(
+export const projectMembers = productSchema.table(
   'project_members',
   {
     id: id(),

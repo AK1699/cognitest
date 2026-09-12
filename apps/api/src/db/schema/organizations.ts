@@ -1,4 +1,6 @@
-import { index, pgEnum, pgTable, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core';
+import { index, pgEnum, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core';
+
+import { tenancySchema } from './schemas';
 
 import { MEMBER_STATUSES, ONBOARDING_STATUSES, ORG_STATUSES } from '@cognitest/shared';
 
@@ -10,7 +12,7 @@ export const orgStatus = pgEnum('org_status', ORG_STATUSES);
 export const onboardingStatus = pgEnum('onboarding_status', ONBOARDING_STATUSES);
 export const memberStatus = pgEnum('member_status', MEMBER_STATUSES);
 
-export const organizations = pgTable('organizations', {
+export const organizations = tenancySchema.table('organizations', {
   id: id(),
   name: text('name').notNull(),
   slug: text('slug').notNull().unique(),
@@ -21,7 +23,7 @@ export const organizations = pgTable('organizations', {
   ...timestamps,
 });
 
-export const organizationMembers = pgTable(
+export const organizationMembers = tenancySchema.table(
   'organization_members',
   {
     id: id(),

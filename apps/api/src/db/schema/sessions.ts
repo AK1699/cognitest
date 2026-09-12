@@ -1,9 +1,11 @@
-import { index, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { index, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+
+import { identitySchema } from './schemas';
 
 import { id, timestamps } from './helpers';
 import { users } from './users';
 
-export const sessions = pgTable(
+export const sessions = identitySchema.table(
   'sessions',
   {
     id: id(),

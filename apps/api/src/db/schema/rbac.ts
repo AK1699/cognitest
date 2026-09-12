@@ -1,9 +1,11 @@
-import { boolean, index, pgTable, primaryKey, text, unique, uuid } from 'drizzle-orm/pg-core';
+import { boolean, index, primaryKey, text, unique, uuid } from 'drizzle-orm/pg-core';
+
+import { accessSchema } from './schemas';
 
 import { id, timestamps } from './helpers';
 import { organizations } from './organizations';
 
-export const roles = pgTable(
+export const roles = accessSchema.table(
   'roles',
   {
     id: id(),
@@ -26,7 +28,7 @@ export const roles = pgTable(
   ],
 );
 
-export const permissions = pgTable('permissions', {
+export const permissions = accessSchema.table('permissions', {
   id: id(),
   // format: resource.action, e.g. test_plan.approve — catalogue lives in @cognitest/shared
   key: text('key').notNull().unique(),
@@ -36,7 +38,7 @@ export const permissions = pgTable('permissions', {
   ...timestamps,
 });
 
-export const rolePermissions = pgTable(
+export const rolePermissions = accessSchema.table(
   'role_permissions',
   {
     roleId: uuid('role_id')

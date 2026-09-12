@@ -5,7 +5,11 @@ import { loadEnv } from '../src/config/load-env';
 import { runMigrations } from '../src/db/migrate';
 
 loadEnv();
-const url = process.env.DATABASE_URL ?? 'postgres://cognitest:cognitest@localhost:5432/cognitest';
+// the drizzle bookkeeping schema belongs to the owner — the app role can't see it
+const url =
+  process.env.DATABASE_URL_MIGRATIONS ??
+  process.env.DATABASE_URL ??
+  'postgres://cognitest:cognitest@localhost:5432/cognitest';
 
 async function appliedMigrationCount(): Promise<number> {
   const client = postgres(url, { max: 1 });

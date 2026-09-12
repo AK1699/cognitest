@@ -71,6 +71,13 @@
       "when": 1789192573495,
       "tag": "0009_invitation_resolver",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1789192573496,
+      "tag": "0010_schema_categorization",
+      "breakpoints": true
     }
   ]
 }

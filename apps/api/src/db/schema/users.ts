@@ -1,4 +1,6 @@
-import { boolean, pgEnum, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, pgEnum, text, timestamp } from 'drizzle-orm/pg-core';
+
+import { identitySchema } from './schemas';
 
 import { USER_STATUSES } from '@cognitest/shared';
 
@@ -6,7 +8,7 @@ import { citext, id, timestamps } from './helpers';
 
 export const userStatus = pgEnum('user_status', USER_STATUSES);
 
-export const users = pgTable('users', {
+export const users = identitySchema.table('users', {
   id: id(),
   email: citext('email').notNull().unique(),
   // nullable: OIDC-only users have no username (never auto-generated)

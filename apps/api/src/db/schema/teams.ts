@@ -1,10 +1,12 @@
-import { foreignKey, index, pgTable, text, unique, uuid } from 'drizzle-orm/pg-core';
+import { foreignKey, index, text, unique, uuid } from 'drizzle-orm/pg-core';
+
+import { tenancySchema } from './schemas';
 
 import { id, timestamps } from './helpers';
 import { organizations } from './organizations';
 import { users } from './users';
 
-export const teams = pgTable(
+export const teams = tenancySchema.table(
   'teams',
   {
     id: id(),
@@ -28,7 +30,7 @@ export const teams = pgTable(
  * and visibility only (spec §27 decision); a role override column is additive
  * later if the product needs it.
  */
-export const teamMembers = pgTable(
+export const teamMembers = tenancySchema.table(
   'team_members',
   {
     id: id(),

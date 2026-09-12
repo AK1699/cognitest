@@ -3,7 +3,17 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
-import type { ZodType } from 'zod';
+
+/**
+ * Structural stand-in for a Zod schema — only safeParse is needed here, and
+ * a nominal ZodType would couple this file to the exact zod instance the
+ * shared package was compiled against.
+ */
+interface ValidationSchema {
+  safeParse(value: unknown):
+    | { success: true }
+    | { success: false; error: { issues: { message: string }[] } };
+}
 
 /** Posts JSON to the proxied API and surfaces validation/auth errors inline. */
 export function useAuthSubmit() {
@@ -15,7 +25,7 @@ export function useAuthSubmit() {
     url: string,
     body: Record<string, unknown>,
     redirectTo: string,
-    schema?: ZodType,
+    schema?: ValidationSchema,
   ) {
     setError(null);
     // client-side validation first: instant, field-specific feedback

@@ -6,6 +6,7 @@ export * from './oauth-accounts';
 export * from './organizations';
 export * from './projects';
 export * from './rbac';
+export * from './schemas';
 export * from './sessions';
 export * from './teams';
 export * from './users';

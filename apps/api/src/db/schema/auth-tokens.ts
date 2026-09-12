@@ -1,4 +1,6 @@
-import { index, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { index, pgEnum, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+
+import { identitySchema } from './schemas';
 
 import { AUTH_TOKEN_TYPES } from '@cognitest/shared';
 
@@ -12,7 +14,7 @@ export const authTokenType = pgEnum('auth_token_type', AUTH_TOKEN_TYPES);
  * Only the sha256 of the raw token is stored; issuing a new token of a type
  * consumes the user's outstanding tokens of that type.
  */
-export const authTokens = pgTable(
+export const authTokens = identitySchema.table(
   'auth_tokens',
   {
     id: id(),

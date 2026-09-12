@@ -98,12 +98,13 @@ afterAll(async () => {
 describe('row-level security', () => {
   it('meta: every table with an organization_id column has RLS enabled', async () => {
     const rows = await owner`
-      select c.relname
+      select n.nspname || '.' || c.relname as name
       from pg_class c
+      join pg_namespace n on n.oid = c.relnamespace
       join pg_attribute a on a.attrelid = c.oid and a.attname = 'organization_id'
-      where c.relnamespace = 'public'::regnamespace and c.relkind = 'r'
-        and not c.relrowsecurity`;
-    expect(rows.map((r) => r.relname)).toEqual([]);
+      where n.nspname in ('public','identity','tenancy','access','product','audit')
+        and c.relkind = 'r' and not c.relrowsecurity`;
+    expect(rows.map((r) => r.name)).toEqual([]);
   });
 
   it('org A context sees only org A rows in every tenant table', async () => {

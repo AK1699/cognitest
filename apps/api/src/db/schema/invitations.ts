@@ -1,12 +1,6 @@
-import {
-  index,
-  pgEnum,
-  pgTable,
-  text,
-  timestamp,
-  uniqueIndex,
-  uuid,
-} from 'drizzle-orm/pg-core';
+import { index, pgEnum, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+
+import { tenancySchema } from './schemas';
 import { sql } from 'drizzle-orm';
 
 import { INVITATION_STATUSES } from '@cognitest/shared';
@@ -19,7 +13,7 @@ import { users } from './users';
 
 export const invitationStatus = pgEnum('invitation_status', INVITATION_STATUSES);
 
-export const invitations = pgTable(
+export const invitations = tenancySchema.table(
   'invitations',
   {
     id: id(),

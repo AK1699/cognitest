@@ -1,4 +1,6 @@
-import { pgEnum, pgTable, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core';
+import { pgEnum, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core';
+
+import { identitySchema } from './schemas';
 
 import { OAUTH_PROVIDERS } from '@cognitest/shared';
 
@@ -7,7 +9,7 @@ import { users } from './users';
 
 export const oauthProvider = pgEnum('oauth_provider', OAUTH_PROVIDERS);
 
-export const oauthAccounts = pgTable(
+export const oauthAccounts = identitySchema.table(
   'oauth_accounts',
   {
     id: id(),
