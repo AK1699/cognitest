@@ -1,7 +1,9 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
+
+import { useToast } from '../../toast';
+import { useActiveProject } from '../use-active-project';
 
 interface Project {
   id: string;
@@ -62,98 +64,31 @@ const ghostButtonClasses =
 export function DesignBoard({
   organizationId,
   initialProjects,
-  initialSelectedId,
 }: {
   organizationId: string;
   initialProjects: Project[];
-  initialSelectedId?: string;
 }) {
-  const router = useRouter();
-  const [projects, setProjects] = useState(initialProjects);
-  const [selected, setSelected] = useState<string | null>(
-    initialProjects.find((p) => p.id === initialSelectedId)?.id ?? initialProjects[0]?.id ?? null,
+  const toast = useToast();
+  // the Design module works on the app-wide active project (header breadcrumb)
+  const [activeProject] = useActiveProject(organizationId, initialProjects);
+  const selected = activeProject?.id ?? null;
+  // children report failures here; a null clears nothing — toasts self-dismiss
+  const onError = useCallback(
+    (message: string | null) => {
+      if (message) toast.push(message, 'error');
+    },
+    [toast],
   );
-  const [error, setError] = useState<string | null>(null);
-
-  // keep the sidebar's project deep-links honest
-  function select(projectId: string) {
-    setSelected(projectId);
-    router.replace(`/${organizationId}/design?project=${projectId}`, { scroll: false });
-  }
 
   const base = `/api/organizations/${organizationId}`;
 
-  async function guard(fn: () => Promise<void>) {
-    setError(null);
-    try {
-      await fn();
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Something went wrong');
-    }
-  }
-
-  async function createProject(form: FormData) {
-    await guard(async () => {
-      const name = String(form.get('name') ?? '').trim();
-      const key = String(form.get('key') ?? '')
-        .trim()
-        .toUpperCase();
-      const data = await json<{ project: Project }>(`${base}/projects`, {
-        method: 'POST',
-        body: JSON.stringify({ name, key }),
-      });
-      setProjects((rows) => [...rows, data.project]);
-      select(data.project.id);
-      router.refresh(); // the sidebar's project list is server-rendered
-    });
-  }
-
   return (
     <div className="flex flex-col gap-4">
-      {error && (
-        <p role="alert" className="rounded-[10px] bg-fail-tint px-3.5 py-2.5 text-sm text-fail">
-          {error}
-        </p>
-      )}
-
-      <div className="flex flex-wrap items-center gap-2">
-        {projects.map((project) => (
-          <button
-            key={project.id}
-            type="button"
-            onClick={() => select(project.id)}
-            className={`rounded-[10px] px-3.5 py-2 text-sm font-semibold transition-colors ${
-              selected === project.id
-                ? 'bg-primary-deep text-white'
-                : 'border border-line bg-white text-ink hover:bg-primary-tint'
-            }`}
-          >
-            <span className="mr-1.5 font-mono text-xs opacity-70">{project.key}</span>
-            {project.name}
-          </button>
-        ))}
-        <form
-          className="flex gap-2"
-          onSubmit={(event) => {
-            event.preventDefault();
-            const form = new FormData(event.currentTarget);
-            event.currentTarget.reset();
-            void createProject(form);
-          }}
-        >
-          <input name="key" placeholder="KEY" required className={`${inputClasses} w-20 flex-none font-mono uppercase`} />
-          <input name="name" placeholder="New project name" required className={inputClasses} />
-          <button type="submit" className={buttonClasses}>
-            + Project
-          </button>
-        </form>
-      </div>
-
       {selected ? (
-        <ProjectPlans key={selected} base={base} projectId={selected} onError={setError} />
+        <ProjectPlans key={selected} base={base} projectId={selected} onError={onError} />
       ) : (
         <p className="rounded-card border border-dashed border-line bg-white p-8 text-sm text-muted">
-          Create your first project to start designing tests.
+          No projects yet — create one in the Projects section to start designing tests.
         </p>
       )}
     </div>
@@ -238,12 +173,18 @@ function ProjectPlans({
                 >
                   {expanded === plan.id ? '▾' : '▸'} {plan.title}
                 </button>
-                <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${STATUS_STYLES[plan.status]}`}>
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${STATUS_STYLES[plan.status]}`}
+                >
                   {plan.status.replace('_', ' ')} · v{plan.version}
                 </span>
                 <span className="ml-auto flex gap-2">
                   {plan.status === 'draft' && (
-                    <button type="button" onClick={act(plan.id, '/submit')} className={ghostButtonClasses}>
+                    <button
+                      type="button"
+                      onClick={act(plan.id, '/submit')}
+                      className={ghostButtonClasses}
+                    >
                       Submit for review
                     </button>
                   )}
@@ -402,7 +343,9 @@ function SuiteCases({
                 .filter(Boolean)
                 .map((line) => {
                   const [action, expected] = line.split('=>').map((part) => part.trim());
-                  return expected ? { action: action ?? line, expected } : { action: action ?? line };
+                  return expected
+                    ? { action: action ?? line, expected }
+                    : { action: action ?? line };
                 });
               event.currentTarget.reset();
               void (async () => {

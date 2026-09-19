@@ -116,7 +116,7 @@ describe('OIDC (e2e, mocked provider)', () => {
       payload: {
         email,
         username: `linkme-${run}`,
-        password: 'a-long-secure-password',
+        password: 'A-long-secure-passw0rd',
         displayName: 'Link Me',
         organizationName: 'Link Workspace',
       },

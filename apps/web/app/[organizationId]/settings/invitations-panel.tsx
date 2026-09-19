@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 
+import { useToast } from '../../toast';
+
 interface InvitationRow {
   id: string;
   email: string;
@@ -33,13 +35,14 @@ export function InvitationsPanel({
 }) {
   const [invitations, setInvitations] = useState(initialInvitations);
   const [email, setEmail] = useState('');
-  const [roleId, setRoleId] = useState(roles.find((r) => r.key === 'tester')?.id ?? roles[0]?.id ?? '');
-  const [error, setError] = useState<string | null>(null);
+  const [roleId, setRoleId] = useState(
+    roles.find((r) => r.key === 'tester')?.id ?? roles[0]?.id ?? '',
+  );
+  const toast = useToast();
   const [pending, setPending] = useState(false);
 
   async function invite() {
     setPending(true);
-    setError(null);
     try {
       const res = await fetch(`/api/organizations/${organizationId}/invitations`, {
         method: 'POST',
@@ -47,14 +50,15 @@ export function InvitationsPanel({
         body: JSON.stringify({ email: email.trim(), roleId }),
       });
       if (!res.ok) {
-        setError(await readError(res));
+        toast.push(await readError(res), 'error');
         return;
       }
       const created = (await res.json()) as { invitation: InvitationRow };
       setInvitations((rows) => [created.invitation, ...rows]);
       setEmail('');
+      toast.push('Invitation sent', 'success');
     } catch {
-      setError('Network error — is the API running?');
+      toast.push('Network error — is the API running?', 'error');
     } finally {
       setPending(false);
     }
@@ -109,11 +113,6 @@ export function InvitationsPanel({
           {pending ? 'Sending…' : 'Invite'}
         </button>
       </form>
-      {error && (
-        <p role="alert" className="mb-4 rounded-[10px] bg-fail-tint px-3.5 py-2.5 text-sm text-fail">
-          {error}
-        </p>
-      )}
 
       {invitations.length === 0 ? (
         <p className="text-sm text-muted">No invitations yet.</p>

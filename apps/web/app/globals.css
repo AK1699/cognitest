@@ -1,8 +1,8 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /*
  * Cognitest design system tokens.
- * Teal is the workhorse; magenta is reserved for CTAs and AI features.
+ * Teal is the workhorse; blue is reserved for CTAs and AI features.
  * Status colours are fixed and never reused for brand purposes.
  */
 @theme {
@@ -10,9 +10,9 @@
   --color-primary-deep: #0a5f5b;
   --color-primary: #367c79;
   --color-primary-tint: #e3efed;
-  --color-accent: #d3407f;
-  --color-accent-deep: #a53263;
-  --color-accent-tint: #f8e2ec;
+  --color-accent: #0a4f85;
+  --color-accent-deep: #083c66;
+  --color-accent-tint: #e2ecf6;
 
   /* surface */
   --color-cream: #faf5ea;
@@ -35,6 +35,35 @@
 
   /* shape */
   --radius-card: 14px;
+}
+
+/*
+ * Dark theme: token overrides only — utilities reference the CSS variables at
+ * use-site, so remapping them here restyles the whole app. `--color-white`
+ * becomes the card-surface colour.
+ */
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-white: #212b29;
+  --color-cream: #151d1b;
+  --color-ink: #e6edeb;
+  --color-muted: #8fa09a;
+  --color-line: #32403c;
+
+  --color-primary-deep: #8fd0ca;
+  --color-primary: #5aa9a4;
+  --color-primary-tint: #24322f;
+  --color-accent: #7db3e8;
+  --color-accent-deep: #a7c9ef;
+  --color-accent-tint: #1d2b3a;
+
+  --color-pass: #4ecba8;
+  --color-pass-tint: #17352c;
+  --color-fail: #f08a85;
+  --color-fail-tint: #3a201e;
+  --color-warn: #e0b45e;
+  --color-warn-tint: #37301c;
 }
 
 @layer base {

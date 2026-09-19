@@ -125,26 +125,18 @@
         "audit_logs_organization_id_organizations_id_fk": {
           "name": "audit_logs_organization_id_organizations_id_fk",
           "tableFrom": "audit_logs",
-          "columnsFrom": [
-            "organization_id"
-          ],
+          "columnsFrom": ["organization_id"],
           "tableTo": "organizations",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "audit_logs_actor_user_id_users_id_fk": {
           "name": "audit_logs_actor_user_id_users_id_fk",
           "tableFrom": "audit_logs",
-          "columnsFrom": [
-            "actor_user_id"
-          ],
+          "columnsFrom": ["actor_user_id"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -239,13 +231,9 @@
         "auth_tokens_user_id_users_id_fk": {
           "name": "auth_tokens_user_id_users_id_fk",
           "tableFrom": "auth_tokens",
-          "columnsFrom": [
-            "user_id"
-          ],
+          "columnsFrom": ["user_id"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -254,9 +242,7 @@
       "uniqueConstraints": {
         "auth_tokens_token_hash_unique": {
           "name": "auth_tokens_token_hash_unique",
-          "columns": [
-            "token_hash"
-          ],
+          "columns": ["token_hash"],
           "nullsNotDistinct": false
         }
       },
@@ -389,52 +375,36 @@
         "invitations_organization_id_organizations_id_fk": {
           "name": "invitations_organization_id_organizations_id_fk",
           "tableFrom": "invitations",
-          "columnsFrom": [
-            "organization_id"
-          ],
+          "columnsFrom": ["organization_id"],
           "tableTo": "organizations",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "invitations_role_id_roles_id_fk": {
           "name": "invitations_role_id_roles_id_fk",
           "tableFrom": "invitations",
-          "columnsFrom": [
-            "role_id"
-          ],
+          "columnsFrom": ["role_id"],
           "tableTo": "roles",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "invitations_team_id_teams_id_fk": {
           "name": "invitations_team_id_teams_id_fk",
           "tableFrom": "invitations",
-          "columnsFrom": [
-            "team_id"
-          ],
+          "columnsFrom": ["team_id"],
           "tableTo": "teams",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "invitations_invited_by_users_id_fk": {
           "name": "invitations_invited_by_users_id_fk",
           "tableFrom": "invitations",
-          "columnsFrom": [
-            "invited_by"
-          ],
+          "columnsFrom": ["invited_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -443,9 +413,7 @@
       "uniqueConstraints": {
         "invitations_token_hash_unique": {
           "name": "invitations_token_hash_unique",
-          "columns": [
-            "token_hash"
-          ],
+          "columns": ["token_hash"],
           "nullsNotDistinct": false
         }
       },
@@ -527,13 +495,9 @@
         "oauth_accounts_user_id_users_id_fk": {
           "name": "oauth_accounts_user_id_users_id_fk",
           "tableFrom": "oauth_accounts",
-          "columnsFrom": [
-            "user_id"
-          ],
+          "columnsFrom": ["user_id"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -542,10 +506,7 @@
       "uniqueConstraints": {
         "oauth_accounts_provider_account_uq": {
           "name": "oauth_accounts_provider_account_uq",
-          "columns": [
-            "provider",
-            "provider_account_id"
-          ],
+          "columns": ["provider", "provider_account_id"],
           "nullsNotDistinct": false
         }
       },
@@ -633,39 +594,27 @@
         "organization_members_organization_id_organizations_id_fk": {
           "name": "organization_members_organization_id_organizations_id_fk",
           "tableFrom": "organization_members",
-          "columnsFrom": [
-            "organization_id"
-          ],
+          "columnsFrom": ["organization_id"],
           "tableTo": "organizations",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "organization_members_user_id_users_id_fk": {
           "name": "organization_members_user_id_users_id_fk",
           "tableFrom": "organization_members",
-          "columnsFrom": [
-            "user_id"
-          ],
+          "columnsFrom": ["user_id"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "organization_members_role_id_roles_id_fk": {
           "name": "organization_members_role_id_roles_id_fk",
           "tableFrom": "organization_members",
-          "columnsFrom": [
-            "role_id"
-          ],
+          "columnsFrom": ["role_id"],
           "tableTo": "roles",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -674,10 +623,7 @@
       "uniqueConstraints": {
         "organization_members_org_user_uq": {
           "name": "organization_members_org_user_uq",
-          "columns": [
-            "organization_id",
-            "user_id"
-          ],
+          "columns": ["organization_id", "user_id"],
           "nullsNotDistinct": false
         }
       },
@@ -757,9 +703,7 @@
       "uniqueConstraints": {
         "organizations_slug_unique": {
           "name": "organizations_slug_unique",
-          "columns": [
-            "slug"
-          ],
+          "columns": ["slug"],
           "nullsNotDistinct": false
         }
       },
@@ -832,28 +776,18 @@
         "project_members_user_id_users_id_fk": {
           "name": "project_members_user_id_users_id_fk",
           "tableFrom": "project_members",
-          "columnsFrom": [
-            "user_id"
-          ],
+          "columnsFrom": ["user_id"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "project_members_project_org_fk": {
           "name": "project_members_project_org_fk",
           "tableFrom": "project_members",
-          "columnsFrom": [
-            "project_id",
-            "organization_id"
-          ],
+          "columnsFrom": ["project_id", "organization_id"],
           "tableTo": "projects",
-          "columnsTo": [
-            "id",
-            "organization_id"
-          ],
+          "columnsTo": ["id", "organization_id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -862,10 +796,7 @@
       "uniqueConstraints": {
         "project_members_project_user_uq": {
           "name": "project_members_project_user_uq",
-          "columns": [
-            "project_id",
-            "user_id"
-          ],
+          "columns": ["project_id", "user_id"],
           "nullsNotDistinct": false
         }
       },
@@ -958,26 +889,18 @@
         "projects_organization_id_organizations_id_fk": {
           "name": "projects_organization_id_organizations_id_fk",
           "tableFrom": "projects",
-          "columnsFrom": [
-            "organization_id"
-          ],
+          "columnsFrom": ["organization_id"],
           "tableTo": "organizations",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "projects_created_by_users_id_fk": {
           "name": "projects_created_by_users_id_fk",
           "tableFrom": "projects",
-          "columnsFrom": [
-            "created_by"
-          ],
+          "columnsFrom": ["created_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -986,18 +909,12 @@
       "uniqueConstraints": {
         "projects_org_key_uq": {
           "name": "projects_org_key_uq",
-          "columns": [
-            "organization_id",
-            "key"
-          ],
+          "columns": ["organization_id", "key"],
           "nullsNotDistinct": false
         },
         "projects_id_org_uq": {
           "name": "projects_id_org_uq",
-          "columns": [
-            "id",
-            "organization_id"
-          ],
+          "columns": ["id", "organization_id"],
           "nullsNotDistinct": false
         }
       },
@@ -1061,9 +978,7 @@
       "uniqueConstraints": {
         "permissions_key_unique": {
           "name": "permissions_key_unique",
-          "columns": [
-            "key"
-          ],
+          "columns": ["key"],
           "nullsNotDistinct": false
         }
       },
@@ -1107,26 +1022,18 @@
         "role_permissions_role_id_roles_id_fk": {
           "name": "role_permissions_role_id_roles_id_fk",
           "tableFrom": "role_permissions",
-          "columnsFrom": [
-            "role_id"
-          ],
+          "columnsFrom": ["role_id"],
           "tableTo": "roles",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "role_permissions_permission_id_permissions_id_fk": {
           "name": "role_permissions_permission_id_permissions_id_fk",
           "tableFrom": "role_permissions",
-          "columnsFrom": [
-            "permission_id"
-          ],
+          "columnsFrom": ["permission_id"],
           "tableTo": "permissions",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -1134,10 +1041,7 @@
       "compositePrimaryKeys": {
         "role_permissions_role_id_permission_id_pk": {
           "name": "role_permissions_role_id_permission_id_pk",
-          "columns": [
-            "role_id",
-            "permission_id"
-          ]
+          "columns": ["role_id", "permission_id"]
         }
       },
       "uniqueConstraints": {},
@@ -1223,13 +1127,9 @@
         "roles_organization_id_organizations_id_fk": {
           "name": "roles_organization_id_organizations_id_fk",
           "tableFrom": "roles",
-          "columnsFrom": [
-            "organization_id"
-          ],
+          "columnsFrom": ["organization_id"],
           "tableTo": "organizations",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -1238,18 +1138,12 @@
       "uniqueConstraints": {
         "roles_org_name_uq": {
           "name": "roles_org_name_uq",
-          "columns": [
-            "organization_id",
-            "name"
-          ],
+          "columns": ["organization_id", "name"],
           "nullsNotDistinct": true
         },
         "roles_org_key_uq": {
           "name": "roles_org_key_uq",
-          "columns": [
-            "organization_id",
-            "key"
-          ],
+          "columns": ["organization_id", "key"],
           "nullsNotDistinct": true
         }
       },
@@ -1346,13 +1240,9 @@
         "sessions_user_id_users_id_fk": {
           "name": "sessions_user_id_users_id_fk",
           "tableFrom": "sessions",
-          "columnsFrom": [
-            "user_id"
-          ],
+          "columnsFrom": ["user_id"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -1361,9 +1251,7 @@
       "uniqueConstraints": {
         "sessions_token_hash_unique": {
           "name": "sessions_token_hash_unique",
-          "columns": [
-            "token_hash"
-          ],
+          "columns": ["token_hash"],
           "nullsNotDistinct": false
         }
       },
@@ -1436,28 +1324,18 @@
         "team_members_user_id_users_id_fk": {
           "name": "team_members_user_id_users_id_fk",
           "tableFrom": "team_members",
-          "columnsFrom": [
-            "user_id"
-          ],
+          "columnsFrom": ["user_id"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "team_members_team_org_fk": {
           "name": "team_members_team_org_fk",
           "tableFrom": "team_members",
-          "columnsFrom": [
-            "team_id",
-            "organization_id"
-          ],
+          "columnsFrom": ["team_id", "organization_id"],
           "tableTo": "teams",
-          "columnsTo": [
-            "id",
-            "organization_id"
-          ],
+          "columnsTo": ["id", "organization_id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -1466,10 +1344,7 @@
       "uniqueConstraints": {
         "team_members_team_user_uq": {
           "name": "team_members_team_user_uq",
-          "columns": [
-            "team_id",
-            "user_id"
-          ],
+          "columns": ["team_id", "user_id"],
           "nullsNotDistinct": false
         }
       },
@@ -1542,13 +1417,9 @@
         "teams_organization_id_organizations_id_fk": {
           "name": "teams_organization_id_organizations_id_fk",
           "tableFrom": "teams",
-          "columnsFrom": [
-            "organization_id"
-          ],
+          "columnsFrom": ["organization_id"],
           "tableTo": "organizations",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -1557,18 +1428,12 @@
       "uniqueConstraints": {
         "teams_org_slug_uq": {
           "name": "teams_org_slug_uq",
-          "columns": [
-            "organization_id",
-            "slug"
-          ],
+          "columns": ["organization_id", "slug"],
           "nullsNotDistinct": false
         },
         "teams_id_org_uq": {
           "name": "teams_id_org_uq",
-          "columns": [
-            "id",
-            "organization_id"
-          ],
+          "columns": ["id", "organization_id"],
           "nullsNotDistinct": false
         }
       },
@@ -1665,16 +1530,12 @@
       "uniqueConstraints": {
         "users_email_unique": {
           "name": "users_email_unique",
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "nullsNotDistinct": false
         },
         "users_username_unique": {
           "name": "users_username_unique",
-          "columns": [
-            "username"
-          ],
+          "columns": ["username"],
           "nullsNotDistinct": false
         }
       },
@@ -1687,72 +1548,42 @@
     "public.auth_token_type": {
       "name": "auth_token_type",
       "schema": "public",
-      "values": [
-        "email_verification",
-        "password_reset"
-      ]
+      "values": ["email_verification", "password_reset"]
     },
     "public.invitation_status": {
       "name": "invitation_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "accepted",
-        "expired",
-        "revoked"
-      ]
+      "values": ["pending", "accepted", "expired", "revoked"]
     },
     "public.oauth_provider": {
       "name": "oauth_provider",
       "schema": "public",
-      "values": [
-        "google",
-        "microsoft"
-      ]
+      "values": ["google", "microsoft"]
     },
     "public.member_status": {
       "name": "member_status",
       "schema": "public",
-      "values": [
-        "active",
-        "suspended"
-      ]
+      "values": ["active", "suspended"]
     },
     "public.onboarding_status": {
       "name": "onboarding_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "in_progress",
-        "completed"
-      ]
+      "values": ["pending", "in_progress", "completed"]
     },
     "public.org_status": {
       "name": "org_status",
       "schema": "public",
-      "values": [
-        "active",
-        "suspended"
-      ]
+      "values": ["active", "suspended"]
     },
     "public.project_status": {
       "name": "project_status",
       "schema": "public",
-      "values": [
-        "active",
-        "archived"
-      ]
+      "values": ["active", "archived"]
     },
     "public.user_status": {
       "name": "user_status",
       "schema": "public",
-      "values": [
-        "pending_verification",
-        "active",
-        "suspended",
-        "disabled",
-        "deleted"
-      ]
+      "values": ["pending_verification", "active", "suspended", "disabled", "deleted"]
     }
   },
   "schemas": {},

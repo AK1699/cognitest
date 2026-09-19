@@ -118,12 +118,17 @@ describe('test artefacts (e2e)', () => {
     const planId = (plan.json() as { testPlan: { id: string } }).testPlan.id;
 
     // draft cannot be decided; submitting requires draft
-    expect((await call('POST', `/test-plans/${planId}/decision`, analyst, { decision: 'approved' })).statusCode).toBe(400);
+    expect(
+      (await call('POST', `/test-plans/${planId}/decision`, analyst, { decision: 'approved' }))
+        .statusCode,
+    ).toBe(400);
 
     expect((await call('POST', `/test-plans/${planId}/submit`, developer)).statusCode).toBe(200);
 
     // in_review is edit-locked, and a developer may not approve
-    expect((await call('PATCH', `/test-plans/${planId}`, developer, { title: 'x' })).statusCode).toBe(409);
+    expect(
+      (await call('PATCH', `/test-plans/${planId}`, developer, { title: 'x' })).statusCode,
+    ).toBe(409);
     expect(
       (await call('POST', `/test-plans/${planId}/decision`, developer, { decision: 'approved' }))
         .statusCode,
@@ -142,12 +147,16 @@ describe('test artefacts (e2e)', () => {
     const approval = await call('POST', `/test-plans/${planId}/decision`, analyst, {
       decision: 'approved',
     });
-    expect((approval.json() as { testPlan: { status: string; version: number } }).testPlan).toMatchObject(
-      { status: 'approved', version: 1 },
-    );
+    expect(
+      (approval.json() as { testPlan: { status: string; version: number } }).testPlan,
+    ).toMatchObject({ status: 'approved', version: 1 });
 
     const approvals = await call('GET', `/test-plans/${planId}/approvals`, admin);
-    const rows = (approvals.json() as { approvals: { version: number; status: string; comment: string | null }[] }).approvals;
+    const rows = (
+      approvals.json() as {
+        approvals: { version: number; status: string; comment: string | null }[];
+      }
+    ).approvals;
     expect(rows).toHaveLength(1); // one row per version — rejection was overwritten by resubmit
     expect(rows[0]).toMatchObject({ version: 1, status: 'approved' });
   });
@@ -158,7 +167,9 @@ describe('test artefacts (e2e)', () => {
     await call('POST', `/test-plans/${planId}/submit`, admin);
     await call('POST', `/test-plans/${planId}/decision`, analyst, { decision: 'approved' });
 
-    const edited = await call('PATCH', `/test-plans/${planId}`, admin, { title: 'Versioned plan v2' });
+    const edited = await call('PATCH', `/test-plans/${planId}`, admin, {
+      title: 'Versioned plan v2',
+    });
     const body = (edited.json() as { testPlan: { status: string; version: number } }).testPlan;
     expect(body).toMatchObject({ status: 'draft', version: 2 });
 
@@ -198,6 +209,8 @@ describe('test artefacts (e2e)', () => {
     expect((await call('DELETE', `/test-plans/${planId}`, analyst)).statusCode).toBe(403);
     expect((await call('DELETE', `/test-plans/${planId}`, developer)).statusCode).toBe(403);
     expect((await call('DELETE', `/test-plans/${planId}`, admin)).statusCode).toBe(200);
-    expect((await call('PATCH', `/test-plans/${planId}`, admin, { title: 'nope' })).statusCode).toBe(409);
+    expect(
+      (await call('PATCH', `/test-plans/${planId}`, admin, { title: 'nope' })).statusCode,
+    ).toBe(409);
   });
 });

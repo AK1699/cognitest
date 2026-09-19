@@ -51,7 +51,11 @@ export class OrganizationsService {
 
   async update(
     organizationId: string,
-    patch: { name?: string; onboardingStatus?: Organization['onboardingStatus']; onboardingStep?: string | null },
+    patch: {
+      name?: string;
+      onboardingStatus?: Organization['onboardingStatus'];
+      onboardingStep?: string | null;
+    },
   ): Promise<Organization> {
     const values: Record<string, unknown> = { ...patch };
     if (patch.onboardingStatus === 'completed') values.onboardingCompletedAt = new Date();
@@ -62,7 +66,11 @@ export class OrganizationsService {
         .where(eq(organizations.id, organizationId))
         .returning();
       await this.audit.log(
-        { action: 'ORGANIZATION_UPDATED', resourceType: 'organization', resourceId: organizationId },
+        {
+          action: 'ORGANIZATION_UPDATED',
+          resourceType: 'organization',
+          resourceId: organizationId,
+        },
         tx,
       );
       return updated;
@@ -81,7 +89,11 @@ export class OrganizationsService {
         .returning({ id: organizations.id });
       if (updated.length === 0) throw new NotFoundException();
       await this.audit.log(
-        { action: 'ORGANIZATION_SUSPENDED', resourceType: 'organization', resourceId: organizationId },
+        {
+          action: 'ORGANIZATION_SUSPENDED',
+          resourceType: 'organization',
+          resourceId: organizationId,
+        },
         tx,
       );
     });
@@ -258,7 +270,6 @@ export class OrganizationsService {
       }),
     );
   }
-
 
   /** Keeps ip/userAgent when re-rooting the context for the bootstrap tx. */
   private carryHttpMeta(): { ip?: string; userAgent?: string } {

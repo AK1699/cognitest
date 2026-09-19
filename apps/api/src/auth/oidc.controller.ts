@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  Logger,
-  NotFoundException,
-  Param,
-  Query,
-  Req,
-  Res,
-} from '@nestjs/common';
+import { Controller, Get, Logger, NotFoundException, Param, Query, Req, Res } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Throttle } from '@nestjs/throttler';
 import type { FastifyReply, FastifyRequest } from 'fastify';
@@ -71,8 +62,7 @@ export class OidcController {
     @Res() reply: FastifyReply,
   ): Promise<void> {
     const provider = parseProvider(providerParam);
-    const fail = (error: string) =>
-      reply.redirect(`${this.webOrigin}/login?error=${error}`, 302);
+    const fail = (error: string) => reply.redirect(`${this.webOrigin}/login?error=${error}`, 302);
 
     const query = request.query as Record<string, string | undefined>;
     if (query.error) {

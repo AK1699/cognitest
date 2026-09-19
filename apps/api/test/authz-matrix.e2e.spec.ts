@@ -21,7 +21,10 @@ const DOMAIN = 'matrix.test.local';
 /** Expected status per role for representative routes (spec §25 matrix). */
 interface Check {
   name: string;
-  request: (orgId: string, extra: { teamId: string }) => { method: string; url: string; payload?: object };
+  request: (
+    orgId: string,
+    extra: { teamId: string },
+  ) => { method: string; url: string; payload?: object };
   expected: Record<SystemRole, number>;
 }
 
@@ -29,12 +32,30 @@ const CHECKS: Check[] = [
   {
     name: 'GET org (organization.read) — everyone',
     request: (orgId) => ({ method: 'GET', url: `/organizations/${orgId}` }),
-    expected: { admin: 200, manager: 200, tester: 200, business_analyst: 200, developer: 200, viewer: 200 },
+    expected: {
+      admin: 200,
+      manager: 200,
+      tester: 200,
+      business_analyst: 200,
+      developer: 200,
+      viewer: 200,
+    },
   },
   {
     name: 'PATCH org (organization.update) — admin only',
-    request: (orgId) => ({ method: 'PATCH', url: `/organizations/${orgId}`, payload: { name: 'Renamed' } }),
-    expected: { admin: 200, manager: 403, tester: 403, business_analyst: 403, developer: 403, viewer: 403 },
+    request: (orgId) => ({
+      method: 'PATCH',
+      url: `/organizations/${orgId}`,
+      payload: { name: 'Renamed' },
+    }),
+    expected: {
+      admin: 200,
+      manager: 403,
+      tester: 403,
+      business_analyst: 403,
+      developer: 403,
+      viewer: 403,
+    },
   },
   {
     name: 'POST team (team.create) — admin + manager',
@@ -43,13 +64,30 @@ const CHECKS: Check[] = [
       url: `/organizations/${orgId}/teams`,
       payload: { name: 'X', slug: `x-${Math.random().toString(36).slice(2, 8)}` },
     }),
-    expected: { admin: 201, manager: 201, tester: 403, business_analyst: 403, developer: 403, viewer: 403 },
+    expected: {
+      admin: 201,
+      manager: 201,
+      tester: 403,
+      business_analyst: 403,
+      developer: 403,
+      viewer: 403,
+    },
   },
   {
     name: 'DELETE team (team.delete) — admin only',
-    request: (orgId, { teamId }) => ({ method: 'DELETE', url: `/organizations/${orgId}/teams/${teamId}` }),
+    request: (orgId, { teamId }) => ({
+      method: 'DELETE',
+      url: `/organizations/${orgId}/teams/${teamId}`,
+    }),
     // non-2xx callers must not delete; run admin last so the fixture team survives
-    expected: { admin: 200, manager: 403, tester: 403, business_analyst: 403, developer: 403, viewer: 403 },
+    expected: {
+      admin: 200,
+      manager: 403,
+      tester: 403,
+      business_analyst: 403,
+      developer: 403,
+      viewer: 403,
+    },
   },
   {
     name: 'POST project (project.create) — everyone but viewer',
@@ -58,7 +96,14 @@ const CHECKS: Check[] = [
       url: `/organizations/${orgId}/projects`,
       payload: { key: `P${Math.random().toString(36).slice(2, 6).toUpperCase()}`, name: 'P' },
     }),
-    expected: { admin: 201, manager: 201, tester: 201, business_analyst: 201, developer: 201, viewer: 403 },
+    expected: {
+      admin: 201,
+      manager: 201,
+      tester: 201,
+      business_analyst: 201,
+      developer: 201,
+      viewer: 403,
+    },
   },
   {
     name: 'POST invitation (invitation.create) — admin + manager',
@@ -67,18 +112,39 @@ const CHECKS: Check[] = [
       url: `/organizations/${orgId}/invitations`,
       payload: { email: `inv-${Math.random().toString(36).slice(2, 8)}@${DOMAIN}`, roleId: '' },
     }),
-    expected: { admin: 400, manager: 400, tester: 403, business_analyst: 403, developer: 403, viewer: 403 },
+    expected: {
+      admin: 400,
+      manager: 400,
+      tester: 403,
+      business_analyst: 403,
+      developer: 403,
+      viewer: 403,
+    },
     // roleId '' fails validation with 400 — enough to prove the permission gate
   },
   {
     name: 'GET audit logs (audit_log.read) — admin + manager',
     request: (orgId) => ({ method: 'GET', url: `/organizations/${orgId}/audit-logs` }),
-    expected: { admin: 200, manager: 200, tester: 403, business_analyst: 403, developer: 403, viewer: 403 },
+    expected: {
+      admin: 200,
+      manager: 200,
+      tester: 403,
+      business_analyst: 403,
+      developer: 403,
+      viewer: 403,
+    },
   },
   {
     name: 'GET roles (role.read) — admin + manager',
     request: (orgId) => ({ method: 'GET', url: `/organizations/${orgId}/roles` }),
-    expected: { admin: 200, manager: 200, tester: 403, business_analyst: 403, developer: 403, viewer: 403 },
+    expected: {
+      admin: 200,
+      manager: 200,
+      tester: 403,
+      business_analyst: 403,
+      developer: 403,
+      viewer: 403,
+    },
   },
   {
     name: 'POST role (role.create) — admin only',
@@ -87,12 +153,26 @@ const CHECKS: Check[] = [
       url: `/organizations/${orgId}/roles`,
       payload: { key: `custom_${Math.random().toString(36).slice(2, 8)}`, name: 'Custom' },
     }),
-    expected: { admin: 201, manager: 403, tester: 403, business_analyst: 403, developer: 403, viewer: 403 },
+    expected: {
+      admin: 201,
+      manager: 403,
+      tester: 403,
+      business_analyst: 403,
+      developer: 403,
+      viewer: 403,
+    },
   },
   {
     name: 'GET members (member.read) — everyone',
     request: (orgId) => ({ method: 'GET', url: `/organizations/${orgId}/members` }),
-    expected: { admin: 200, manager: 200, tester: 200, business_analyst: 200, developer: 200, viewer: 200 },
+    expected: {
+      admin: 200,
+      manager: 200,
+      tester: 200,
+      business_analyst: 200,
+      developer: 200,
+      viewer: 200,
+    },
   },
 ];
 
@@ -129,18 +209,28 @@ describe('authorization matrix (e2e)', () => {
 
   it.each(CHECKS)('$name', async (check) => {
     // admin last: destructive admin-only calls must not break later roles
-    const order: SystemRole[] = ['viewer', 'developer', 'business_analyst', 'tester', 'manager', 'admin'];
+    const order: SystemRole[] = [
+      'viewer',
+      'developer',
+      'business_analyst',
+      'tester',
+      'manager',
+      'admin',
+    ];
     for (const role of order) {
       const user = usersByRole.get(role);
       if (!user) throw new Error(`missing fixture user for ${role}`);
       const { method, url, payload } = check.request(orgId, { teamId });
-      const res = await app.getHttpAdapter().getInstance().inject({
-        method: method as 'GET',
-        url,
-        payload,
-        headers: user.cookie,
-        remoteAddress: uniqueIp(),
-      });
+      const res = await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: method as 'GET',
+          url,
+          payload,
+          headers: user.cookie,
+          remoteAddress: uniqueIp(),
+        });
       expect(res.statusCode, `${role} → ${method} ${url}`).toBe(check.expected[role]);
     }
   });

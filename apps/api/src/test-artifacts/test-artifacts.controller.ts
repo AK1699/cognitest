@@ -151,7 +151,13 @@ export class TestArtifactsController {
     @Body() body: ApprovalDecisionDto,
   ) {
     return {
-      testPlan: await this.plans.decide(projectId, testPlanId, user.id, body.decision, body.comment),
+      testPlan: await this.plans.decide(
+        projectId,
+        testPlanId,
+        user.id,
+        body.decision,
+        body.comment,
+      ),
     };
   }
 

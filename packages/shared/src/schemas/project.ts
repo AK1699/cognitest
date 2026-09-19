@@ -9,6 +9,7 @@ export const projectKeySchema = z
 export const projectSchema = z.object({
   id: z.uuid(),
   organizationId: z.uuid(),
+  teamId: z.uuid(),
   key: projectKeySchema,
   name: z.string(),
   description: z.string().nullable(),
@@ -30,15 +31,19 @@ export const projectMemberSchema = z.object({
 export type ProjectMember = z.infer<typeof projectMemberSchema>;
 
 export const createProjectRequestSchema = z.object({
-  key: projectKeySchema,
+  /** Omitted → derived from the name server-side. */
+  key: projectKeySchema.optional(),
   name: z.string().min(1).max(100),
   description: z.string().max(2000).optional(),
+  /** Omitted → the organisation's first team. */
+  teamId: z.uuid().optional(),
 });
 
 export const updateProjectRequestSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   description: z.string().max(2000).nullable().optional(),
   status: z.enum(PROJECT_STATUSES).optional(),
+  teamId: z.uuid().optional(),
 });
 
 export const projectMemberRequestSchema = z.object({ userId: z.uuid() });

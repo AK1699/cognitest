@@ -1,10 +1,21 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-/** Top-right account menu: avatar initial → dropdown with details + logout. */
-export function UserMenu({ userName, userEmail }: { userName: string; userEmail: string }) {
+import { ThemePicker } from './theme-picker';
+
+/** Top-right account menu: avatar initial → profile link, theme picker, logout. */
+export function UserMenu({
+  organizationId,
+  userName,
+  userEmail,
+}: {
+  organizationId: string;
+  userName: string;
+  userEmail: string;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -45,6 +56,21 @@ export function UserMenu({ userName, userEmail }: { userName: string; userEmail:
         >
           <p className="truncate text-sm font-bold text-primary-deep">{userName}</p>
           <p className="mb-3 truncate text-xs text-muted">{userEmail}</p>
+
+          <Link
+            href={`/${organizationId}/profile`}
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="mb-3 block w-full rounded-[10px] border border-line bg-white px-4 py-2 text-center text-sm font-semibold text-ink transition-colors hover:bg-primary-tint"
+          >
+            Profile
+          </Link>
+
+          <div className="mb-3">
+            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-muted">Theme</p>
+            <ThemePicker />
+          </div>
+
           <button
             type="button"
             role="menuitem"

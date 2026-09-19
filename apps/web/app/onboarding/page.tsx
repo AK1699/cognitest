@@ -32,9 +32,7 @@ export default async function OnboardingPage() {
       </span>
       <OnboardingWizard
         initialOrganization={
-          unfinished
-            ? { id: unfinished.organization.id, name: unfinished.organization.name }
-            : null
+          unfinished ? { id: unfinished.organization.id, name: unfinished.organization.name } : null
         }
         initialStep={unfinished ? initialStep : 'organization'}
       />

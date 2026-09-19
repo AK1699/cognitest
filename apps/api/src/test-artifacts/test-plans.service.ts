@@ -44,7 +44,8 @@ export class TestPlansService {
     input: { title: string; description?: string; requirementId?: string },
   ) {
     return this.tenantDb.run(async (tx) => {
-      if (input.requirementId) await this.assertRequirementInProject(tx, projectId, input.requirementId);
+      if (input.requirementId)
+        await this.assertRequirementInProject(tx, projectId, input.requirementId);
       const [plan] = await tx
         .insert(testPlans)
         .values({ ...input, projectId, organizationId, createdBy: userId })
@@ -82,7 +83,8 @@ export class TestPlansService {
       if (plan.status === TestPlanStatus.Archived) {
         throw new ConflictException('Archived plans cannot be edited');
       }
-      if (patch.requirementId) await this.assertRequirementInProject(tx, projectId, patch.requirementId);
+      if (patch.requirementId)
+        await this.assertRequirementInProject(tx, projectId, patch.requirementId);
 
       // content changed after approval → new version needing re-approval (§54)
       const lifecycle =
@@ -167,7 +169,12 @@ export class TestPlansService {
       }
       const updatedApprovals = await tx
         .update(approvals)
-        .set({ status: decision, comment: comment ?? null, decidedBy: userId, decidedAt: new Date() })
+        .set({
+          status: decision,
+          comment: comment ?? null,
+          decidedBy: userId,
+          decidedAt: new Date(),
+        })
         .where(
           and(
             eq(approvals.entityType, ENTITY_TYPE),

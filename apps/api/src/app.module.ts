@@ -36,8 +36,7 @@ import { UsersModule } from './users/users.module';
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-        transport:
-          process.env.NODE_ENV === 'development' ? { target: 'pino-pretty' } : undefined,
+        transport: process.env.NODE_ENV === 'development' ? { target: 'pino-pretty' } : undefined,
       },
     }),
     ContextModule,

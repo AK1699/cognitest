@@ -58,9 +58,7 @@ export default async function MembersPage({
                 <p className="text-sm font-semibold text-primary-deep">
                   {ROLE_LABELS[member.roleKey ?? ''] ?? member.roleKey ?? '—'}
                 </p>
-                {member.status !== 'active' && (
-                  <p className="text-xs text-fail">{member.status}</p>
-                )}
+                {member.status !== 'active' && <p className="text-xs text-fail">{member.status}</p>}
               </div>
             </li>
           ))}

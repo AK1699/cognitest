@@ -3,8 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import { FormError } from '../(auth)/auth-form';
 import { Field, PrimaryButton } from '../(auth)/components';
+import { useToast } from '../toast';
 
 type Step = 'organization' | 'team' | 'invite';
 
@@ -59,7 +59,7 @@ export function OnboardingWizard({
   const router = useRouter();
   const [step, setStep] = useState<Step>(initialStep);
   const [organization, setOrganization] = useState(initialOrganization);
-  const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
   const [pending, setPending] = useState(false);
   const [roles, setRoles] = useState<RoleOption[]>([]);
   const [invites, setInvites] = useState<InviteRow[]>([{ email: '', roleId: '' }]);
@@ -84,11 +84,10 @@ export function OnboardingWizard({
 
   async function run(fn: () => Promise<void>) {
     setPending(true);
-    setError(null);
     try {
       await fn();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Something went wrong — try again');
+      toast.push(cause instanceof Error ? cause.message : 'Something went wrong — try again', 'error');
     } finally {
       setPending(false);
     }
@@ -152,21 +151,46 @@ export function OnboardingWizard({
   return (
     <section className="w-full max-w-md rounded-card border border-line bg-white p-8">
       {/* step indicator */}
-      <ol className="mb-6 flex items-center gap-2">
-        {STEPS.map((s, index) => (
-          <li key={s.key} className="flex flex-1 flex-col gap-1.5">
-            <span
-              className={`h-1.5 rounded-full ${index <= currentIndex ? 'bg-accent' : 'bg-line'}`}
-            />
-            <span
-              className={`text-xs font-semibold ${
-                index === currentIndex ? 'text-primary-deep' : 'text-muted'
-              }`}
-            >
-              {index + 1}. {s.label}
-            </span>
-          </li>
-        ))}
+      <ol className="mb-8 flex items-start">
+        {STEPS.map((s, index) => {
+          const done = index < currentIndex;
+          const current = index === currentIndex;
+          return (
+            <li key={s.key} className="flex flex-1 flex-col items-center gap-2">
+              <div className="flex w-full items-center">
+                <span
+                  className={`h-px flex-1 ${
+                    index === 0 ? 'invisible' : done || current ? 'bg-primary' : 'bg-line'
+                  }`}
+                />
+                <span
+                  aria-current={current ? 'step' : undefined}
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+                    done
+                      ? 'bg-primary text-white'
+                      : current
+                        ? 'bg-primary-deep text-white ring-4 ring-primary-tint'
+                        : 'border border-line bg-white text-muted'
+                  }`}
+                >
+                  {done ? '✓' : index + 1}
+                </span>
+                <span
+                  className={`h-px flex-1 ${
+                    index === STEPS.length - 1 ? 'invisible' : done ? 'bg-primary' : 'bg-line'
+                  }`}
+                />
+              </div>
+              <span
+                className={`text-xs font-semibold ${
+                  current ? 'text-primary-deep' : done ? 'text-ink' : 'text-muted'
+                }`}
+              >
+                {s.label}
+              </span>
+            </li>
+          );
+        })}
       </ol>
 
       {step === 'organization' && (
@@ -183,8 +207,13 @@ export function OnboardingWizard({
               This is your company workspace — you&apos;ll be its admin.
             </p>
           </header>
-          <FormError error={error} />
-          <Field id="name" label="Organization name" type="text" placeholder="Acme QA" autoComplete="organization" />
+          <Field
+            id="name"
+            label="Organization name"
+            type="text"
+            placeholder="Acme QA"
+            autoComplete="organization"
+          />
           <PrimaryButton>{pending ? 'Creating…' : 'Continue'}</PrimaryButton>
         </form>
       )}
@@ -203,7 +232,6 @@ export function OnboardingWizard({
               Teams group members inside {organization?.name ?? 'your organization'}.
             </p>
           </header>
-          <FormError error={error} />
           <Field id="name" label="Team name" type="text" placeholder="QA Core" autoComplete="off" />
           <PrimaryButton>{pending ? 'Creating…' : 'Continue'}</PrimaryButton>
         </form>
@@ -223,7 +251,6 @@ export function OnboardingWizard({
               They&apos;ll get an email invitation — you can also do this later.
             </p>
           </header>
-          <FormError error={error} />
           {invites.map((row, index) => (
             <div key={index} className="flex gap-2">
               <input

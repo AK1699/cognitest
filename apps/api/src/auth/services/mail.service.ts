@@ -60,7 +60,10 @@ export class MailService {
     await this.send(to, 'Reset your Cognitest password', {
       heading: 'Reset your password',
       bodyLines: ['A password reset was requested for this address.'],
-      cta: { label: 'Choose a new password', url: `${this.webOrigin}/reset-password?token=${rawToken}` },
+      cta: {
+        label: 'Choose a new password',
+        url: `${this.webOrigin}/reset-password?token=${rawToken}`,
+      },
       footnote:
         'This link is valid for 1 hour. If you did not request a reset, ignore this email — your password is unchanged.',
     });

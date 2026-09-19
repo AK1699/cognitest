@@ -70,9 +70,6 @@ export default async function DashboardPage({
             {(projects?.projects ?? []).map((project) => (
               <li key={project.id} className="flex items-center justify-between py-3">
                 <div>
-                  <span className="mr-2 rounded bg-primary-tint px-1.5 py-0.5 font-mono text-xs font-bold text-primary-deep">
-                    {project.key}
-                  </span>
                   <span className="text-sm font-semibold text-ink">{project.name}</span>
                 </div>
                 <span className="text-xs text-muted">{project.status}</span>

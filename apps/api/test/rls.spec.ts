@@ -76,9 +76,9 @@ beforeAll(async () => {
     (${teamA}, ${orgA}, 'Team A', 'general'), (${teamB}, ${orgB}, 'Team B', 'general')`;
   await owner`insert into team_members (team_id, organization_id, user_id) values
     (${teamA}, ${orgA}, ${userA}), (${teamB}, ${orgB}, ${userB})`;
-  await owner`insert into projects (id, organization_id, key, name, created_by) values
-    (${projectA}, ${orgA}, 'PRJA', 'Project A', ${userA}),
-    (${projectB}, ${orgB}, 'PRJB', 'Project B', ${userB})`;
+  await owner`insert into projects (id, organization_id, team_id, key, name, created_by) values
+    (${projectA}, ${orgA}, ${teamA}, 'PRJA', 'Project A', ${userA}),
+    (${projectB}, ${orgB}, ${teamB}, 'PRJB', 'Project B', ${userB})`;
   await owner`insert into project_members (project_id, organization_id, user_id) values
     (${projectA}, ${orgA}, ${userA}), (${projectB}, ${orgB}, ${userB})`;
   await owner`insert into invitations (organization_id, email, role_id, token_hash, invited_by, expires_at) values

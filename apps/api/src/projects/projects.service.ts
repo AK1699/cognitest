@@ -10,8 +10,20 @@ import { AuditService } from '../audit/audit.service';
 import { AuthorizationService } from '../authz/authorization.service';
 import { RequestContextService } from '../common/context/request-context.service';
 import { isUniqueViolation } from '../common/db-errors';
-import { organizationMembers, projectMembers, projects } from '../db/schema';
+import { organizationMembers, projectMembers, projects, teams } from '../db/schema';
 import { TenantDb } from '../db/tenant-db.service';
+import type { Database } from '../db/db.tokens';
+
+/** Derives KEY candidates from a name: "Mobile App" → MOBILE, MOBILE2, … */
+function candidateKeys(name: string): string[] {
+  let base = name
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+    .replace(/^[0-9]+/, '')
+    .slice(0, 6);
+  if (base.length < 2) base = base ? `${base}X` : 'PROJ';
+  return [base, ...Array.from({ length: 8 }, (_, i) => `${base}${i + 2}`)];
+}
 
 @Injectable()
 export class ProjectsService {
@@ -47,24 +59,34 @@ export class ProjectsService {
   async create(
     organizationId: string,
     userId: string,
-    input: { key: string; name: string; description?: string },
+    input: { key?: string; name: string; description?: string; teamId?: string },
   ) {
     return this.tenantDb.run(async (tx) => {
-      const [project] = await tx
-        .insert(projects)
-        .values({
-          organizationId,
-          key: input.key,
-          name: input.name,
-          description: input.description,
-          createdBy: userId,
-        })
-        .returning()
-        .catch((error: unknown) => {
-          throw isUniqueViolation(error, 'projects_org_key_uq')
-            ? new ConflictException('A project with that key already exists')
-            : error;
-        });
+      const teamId = await this.resolveTeam(tx, organizationId, input.teamId);
+      // auto-derived keys get numeric suffixes on collision; explicit keys 409
+      const keys = input.key ? [input.key] : candidateKeys(input.name);
+      let project: typeof projects.$inferSelect | undefined;
+      for (const [attempt, key] of keys.entries()) {
+        try {
+          [project] = await tx
+            .insert(projects)
+            .values({
+              organizationId,
+              teamId,
+              key,
+              name: input.name,
+              description: input.description,
+              createdBy: userId,
+            })
+            .returning();
+          break;
+        } catch (error: unknown) {
+          if (!isUniqueViolation(error, 'projects_org_key_uq')) throw error;
+          if (input.key || attempt === keys.length - 1) {
+            throw new ConflictException('A project with that key already exists');
+          }
+        }
+      }
       if (!project) throw new Error('project insert returned no row');
       await tx.insert(projectMembers).values({ projectId: project.id, organizationId, userId });
       await this.audit.log(
@@ -73,6 +95,30 @@ export class ProjectsService {
       );
       return project;
     });
+  }
+
+  /** Validates an explicit team, or falls back to the organisation's first. */
+  private async resolveTeam(
+    tx: Database,
+    organizationId: string,
+    teamId?: string,
+  ): Promise<string> {
+    if (teamId) {
+      const [team] = await tx
+        .select({ id: teams.id })
+        .from(teams)
+        .where(and(eq(teams.id, teamId), eq(teams.organizationId, organizationId)));
+      if (!team) throw new BadRequestException('Team not found in this organization');
+      return team.id;
+    }
+    const [team] = await tx
+      .select({ id: teams.id })
+      .from(teams)
+      .where(eq(teams.organizationId, organizationId))
+      .orderBy(teams.createdAt)
+      .limit(1);
+    if (!team) throw new BadRequestException('Create a team before creating projects');
+    return team.id;
   }
 
   async get(projectId: string) {
@@ -85,9 +131,22 @@ export class ProjectsService {
 
   async update(
     projectId: string,
-    patch: { name?: string; description?: string | null; status?: 'active' | 'archived' },
+    patch: {
+      name?: string;
+      description?: string | null;
+      status?: 'active' | 'archived';
+      teamId?: string;
+    },
   ) {
     return this.tenantDb.run(async (tx) => {
+      if (patch.teamId) {
+        const [current] = await tx
+          .select({ organizationId: projects.organizationId })
+          .from(projects)
+          .where(eq(projects.id, projectId));
+        if (!current) throw new NotFoundException();
+        await this.resolveTeam(tx, current.organizationId, patch.teamId);
+      }
       const [project] = await tx
         .update(projects)
         .set(patch)
@@ -106,8 +165,21 @@ export class ProjectsService {
     });
   }
 
-  async archive(projectId: string): Promise<void> {
-    await this.update(projectId, { status: 'archived' });
+  /** Permanent removal — cascades to members and every test artefact via FKs. */
+  async deletePermanently(projectId: string): Promise<void> {
+    await this.tenantDb.run(async (tx) => {
+      const [project] = await tx
+        .select({ id: projects.id })
+        .from(projects)
+        .where(eq(projects.id, projectId));
+      if (!project) throw new NotFoundException();
+      // log inside the tx while the resource still exists
+      await this.audit.log(
+        { action: 'PROJECT_DELETED', resourceType: 'project', resourceId: projectId },
+        tx,
+      );
+      await tx.delete(projects).where(eq(projects.id, projectId));
+    });
   }
 
   async listMembers(projectId: string) {

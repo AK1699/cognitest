@@ -63,9 +63,9 @@ export class ProjectsController {
   @RequirePermission('project.delete')
   @HttpCode(200)
   @Delete(':projectId')
-  async archive(@Param('projectId', ParseUUIDPipe) projectId: string) {
-    await this.projects.archive(projectId);
-    return { message: 'Project archived' };
+  async remove(@Param('projectId', ParseUUIDPipe) projectId: string) {
+    await this.projects.deletePermanently(projectId);
+    return { message: 'Project deleted' };
   }
 
   @RequirePermission('project.configure')
