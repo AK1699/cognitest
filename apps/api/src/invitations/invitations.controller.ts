@@ -65,10 +65,7 @@ export class InvitationsController {
   @HttpCode(200)
   @Post('invitations/accept')
   async accept(@CurrentUser() user: AuthUser, @Body() body: AcceptInvitationDto) {
-    const result = await this.invitations.accept(
-      { id: user.id, email: user.email },
-      body.token,
-    );
+    const result = await this.invitations.accept({ id: user.id, email: user.email }, body.token);
     return { message: 'Invitation accepted', organizationId: result.organizationId };
   }
 }

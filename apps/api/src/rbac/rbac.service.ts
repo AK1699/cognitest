@@ -64,7 +64,10 @@ export class RbacService {
             : error;
         });
       if (!role) throw new Error('role insert returned no row');
-      await this.audit.log({ action: 'ROLE_CREATED', resourceType: 'role', resourceId: role.id }, tx);
+      await this.audit.log(
+        { action: 'ROLE_CREATED', resourceType: 'role', resourceId: role.id },
+        tx,
+      );
       return role;
     });
   }
@@ -88,7 +91,10 @@ export class RbacService {
         )
         .returning();
       if (!role) throw new NotFoundException();
-      await this.audit.log({ action: 'ROLE_UPDATED', resourceType: 'role', resourceId: roleId }, tx);
+      await this.audit.log(
+        { action: 'ROLE_UPDATED', resourceType: 'role', resourceId: roleId },
+        tx,
+      );
       return role;
     });
   }
@@ -112,7 +118,10 @@ export class RbacService {
             : error;
         });
       if (deleted.length === 0) throw new NotFoundException();
-      await this.audit.log({ action: 'ROLE_DELETED', resourceType: 'role', resourceId: roleId }, tx);
+      await this.audit.log(
+        { action: 'ROLE_DELETED', resourceType: 'role', resourceId: roleId },
+        tx,
+      );
     });
     await this.authz.invalidateRole(roleId);
   }

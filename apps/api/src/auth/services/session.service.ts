@@ -47,7 +47,10 @@ export class SessionService {
     return this.ttlSeconds;
   }
 
-  async create(userId: string, meta: SessionMeta): Promise<{ rawToken: string; sessionId: string }> {
+  async create(
+    userId: string,
+    meta: SessionMeta,
+  ): Promise<{ rawToken: string; sessionId: string }> {
     const rawToken = this.crypto.generateToken();
     const tokenHash = this.crypto.sha256(rawToken);
     const expiresAt = new Date(Date.now() + this.ttlSeconds * 1000);
@@ -57,7 +60,12 @@ export class SessionService {
       .returning({ id: sessions.id });
     if (!row) throw new Error('session insert returned no row');
     await this.redisSafe((r) =>
-      r.set(this.key(tokenHash), JSON.stringify({ sessionId: row.id, userId }), 'EX', this.ttlSeconds),
+      r.set(
+        this.key(tokenHash),
+        JSON.stringify({ sessionId: row.id, userId }),
+        'EX',
+        this.ttlSeconds,
+      ),
     );
     return { rawToken, sessionId: row.id };
   }
@@ -178,7 +186,9 @@ export class SessionService {
   }
 
   /** Redis failures degrade to the DB path instead of failing the request. */
-  private async redisSafe<T>(fn: (redis: Redis) => Promise<T>): Promise<T | typeof RedisUnavailable> {
+  private async redisSafe<T>(
+    fn: (redis: Redis) => Promise<T>,
+  ): Promise<T | typeof RedisUnavailable> {
     try {
       return await fn(this.redis);
     } catch {

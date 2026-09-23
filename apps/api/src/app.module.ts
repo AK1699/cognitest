@@ -25,6 +25,7 @@ import { ProjectsModule } from './projects/projects.module';
 import { RbacModule } from './rbac/rbac.module';
 import { REDIS, RedisModule } from './redis/redis.module';
 import { TeamsModule } from './teams/teams.module';
+import { TestArtifactsModule } from './test-artifacts/test-artifacts.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -35,8 +36,7 @@ import { UsersModule } from './users/users.module';
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-        transport:
-          process.env.NODE_ENV === 'development' ? { target: 'pino-pretty' } : undefined,
+        transport: process.env.NODE_ENV === 'development' ? { target: 'pino-pretty' } : undefined,
       },
     }),
     ContextModule,
@@ -58,6 +58,7 @@ import { UsersModule } from './users/users.module';
     OrganizationsModule,
     ProjectsModule,
     TeamsModule,
+    TestArtifactsModule,
     InvitationsModule,
     RbacModule,
     AuditModule,

@@ -9,4 +9,5 @@ export * from './schemas/project';
 export * from './schemas/rbac';
 export * from './schemas/session';
 export * from './schemas/team';
+export * from './schemas/test-artifacts';
 export * from './schemas/user';

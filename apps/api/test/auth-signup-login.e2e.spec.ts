@@ -25,7 +25,7 @@ function signupBody(tag: string) {
   return {
     email: email(tag),
     username: `${tag}-${run}`,
-    password: 'a-long-secure-password',
+    password: 'A-long-secure-passw0rd',
     displayName: `User ${tag}`,
     organizationName: `${tag} Workspace`,
   };
@@ -81,18 +81,19 @@ describe('signup and login (e2e)', () => {
 
   it('rejects duplicate email with 409 and weak password with 400', async () => {
     expect((await inject(signupBody('alice'))).statusCode).toBe(409);
-    expect(
-      (await inject({ ...signupBody('weak'), password: 'short' })).statusCode,
-    ).toBe(400);
+    expect((await inject({ ...signupBody('weak'), password: 'short' })).statusCode).toBe(400);
   });
 
   it('logs in with correct credentials and stamps last_login_at', async () => {
-    const res = await app.getHttpAdapter().getInstance().inject({
-      method: 'POST',
-      url: '/auth/login',
-      payload: { email: email('alice'), password: 'a-long-secure-password' },
-      remoteAddress: uniqueIp(),
-    });
+    const res = await app
+      .getHttpAdapter()
+      .getInstance()
+      .inject({
+        method: 'POST',
+        url: '/auth/login',
+        payload: { email: email('alice'), password: 'A-long-secure-passw0rd' },
+        remoteAddress: uniqueIp(),
+      });
     expect(res.statusCode).toBe(200);
     expect(sessionCookie(res)).toBeTruthy();
     const [row] = await owner`select last_login_at from users where email = ${email('alice')}`;
@@ -121,12 +122,15 @@ describe('signup and login (e2e)', () => {
   it('rejects suspended users with 403', async () => {
     await inject(signupBody('suspended'));
     await owner`update users set status = 'suspended' where email = ${email('suspended')}`;
-    const res = await app.getHttpAdapter().getInstance().inject({
-      method: 'POST',
-      url: '/auth/login',
-      payload: { email: email('suspended'), password: 'a-long-secure-password' },
-      remoteAddress: uniqueIp(),
-    });
+    const res = await app
+      .getHttpAdapter()
+      .getInstance()
+      .inject({
+        method: 'POST',
+        url: '/auth/login',
+        payload: { email: email('suspended'), password: 'A-long-secure-passw0rd' },
+        remoteAddress: uniqueIp(),
+      });
     expect(res.statusCode).toBe(403);
   });
 

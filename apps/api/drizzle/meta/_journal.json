@@ -78,6 +78,34 @@
       "when": 1789192573496,
       "tag": "0010_schema_categorization",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1789212124066,
+      "tag": "0011_product_artifacts",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1789212156196,
+      "tag": "0012_product_rls",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1789807775869,
+      "tag": "0013_glorious_preak",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1789878856795,
+      "tag": "0014_burly_night_nurse",
+      "breakpoints": true
     }
   ]
 }

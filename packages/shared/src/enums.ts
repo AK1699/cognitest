@@ -62,6 +62,26 @@ export const InvitationStatus = {
   Revoked: 'revoked',
 } as const satisfies Record<string, InvitationStatus>;
 
+export const REQUIREMENT_STATUSES = ['draft', 'active', 'archived'] as const;
+export type RequirementStatus = (typeof REQUIREMENT_STATUSES)[number];
+
+// spec §53 lifecycle: Draft → Review → Approved (rejected drops back to draft);
+// editing an approved plan bumps the version and returns it to draft
+export const TEST_PLAN_STATUSES = ['draft', 'in_review', 'approved', 'archived'] as const;
+export type TestPlanStatus = (typeof TEST_PLAN_STATUSES)[number];
+export const TestPlanStatus = {
+  Draft: 'draft',
+  InReview: 'in_review',
+  Approved: 'approved',
+  Archived: 'archived',
+} as const satisfies Record<string, TestPlanStatus>;
+
+export const APPROVAL_STATUSES = ['pending', 'approved', 'rejected'] as const;
+export type ApprovalStatus = (typeof APPROVAL_STATUSES)[number];
+
+export const TEST_CASE_PRIORITIES = ['low', 'medium', 'high', 'critical'] as const;
+export type TestCasePriority = (typeof TEST_CASE_PRIORITIES)[number];
+
 export const OAUTH_PROVIDERS = ['google', 'microsoft'] as const;
 export type OAuthProvider = (typeof OAUTH_PROVIDERS)[number];
 export const OAuthProvider = {

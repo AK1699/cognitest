@@ -22,10 +22,7 @@ describe('GET /health (e2e)', () => {
   });
 
   it('returns ok with postgres and redis both up', async () => {
-    const res = await app
-      .getHttpAdapter()
-      .getInstance()
-      .inject({ method: 'GET', url: '/health' });
+    const res = await app.getHttpAdapter().getInstance().inject({ method: 'GET', url: '/health' });
 
     expect(res.statusCode).toBe(200);
     expect(res.json()).toEqual({

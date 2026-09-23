@@ -13,6 +13,7 @@
     "test": "turbo run test",
     "db:migrate": "pnpm --filter @cognitest/api migrate",
     "db:seed": "pnpm --filter @cognitest/api seed",
+    "db:reset": "docker compose rm -sf postgres && docker volume rm -f cognitest_postgres-data && docker compose up -d --wait postgres && pnpm db:migrate && pnpm db:seed",
     "format": "prettier --write ."
   },
   "prettier": "@cognitest/config/prettier.config.mjs",

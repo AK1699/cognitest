@@ -14,7 +14,11 @@ import type { AuthUser, Organization } from '@cognitest/shared';
 
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { RequirePermission } from '../authz/decorators/require-permission.decorator';
-import { CreateOrganizationDto, UpdateMemberDto, UpdateOrganizationDto } from './dto/organization.dto';
+import {
+  CreateOrganizationDto,
+  UpdateMemberDto,
+  UpdateOrganizationDto,
+} from './dto/organization.dto';
 import { OrganizationsService } from './organizations.service';
 
 @Controller()

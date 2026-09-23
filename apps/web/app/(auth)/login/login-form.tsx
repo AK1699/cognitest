@@ -2,11 +2,13 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
 
 import { loginRequestSchema } from '@cognitest/shared';
 
-import { AuthForm, FormError, useAuthSubmit } from '../auth-form';
+import { AuthForm, useAuthSubmit } from '../auth-form';
 import { Field, PrimaryButton } from '../components';
+import { useToast } from '../../toast';
 
 const OIDC_ERRORS: Record<string, string> = {
   account_exists:
@@ -16,10 +18,16 @@ const OIDC_ERRORS: Record<string, string> = {
 };
 
 export function LoginForm() {
-  const { submit, error, pending } = useAuthSubmit();
+  const { submit, pending } = useAuthSubmit();
+  const toast = useToast();
   const params = useSearchParams();
   const redirectTo = params.get('redirectTo') ?? '/';
   const oidcError = OIDC_ERRORS[params.get('error') ?? ''] ?? null;
+
+  useEffect(() => {
+    if (oidcError) toast.push(oidcError, 'error');
+    // fires when the URL-carried error changes; pushing the same toast twice is harmless
+  }, [oidcError, toast]);
 
   return (
     <AuthForm
@@ -32,7 +40,6 @@ export function LoginForm() {
         )
       }
     >
-      <FormError error={error ?? oidcError} />
       <Field
         id="email"
         label="Email"

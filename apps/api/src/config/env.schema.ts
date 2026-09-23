@@ -51,10 +51,10 @@ export const envSchema = z
     JWT_ACCESS_SECRET: z.string().optional(),
     JWT_REFRESH_SECRET: z.string().optional(),
   })
-  .refine(
-    (env) => env.NODE_ENV !== 'production' || !env.AUTH_SECRET.startsWith('dev-only-'),
-    { message: 'AUTH_SECRET must be set to a real value in production', path: ['AUTH_SECRET'] },
-  );
+  .refine((env) => env.NODE_ENV !== 'production' || !env.AUTH_SECRET.startsWith('dev-only-'), {
+    message: 'AUTH_SECRET must be set to a real value in production',
+    path: ['AUTH_SECRET'],
+  });
 
 export type Env = z.infer<typeof envSchema>;
 
