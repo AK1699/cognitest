@@ -1,7 +1,9 @@
 'use client';
 
+import { Plus } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
+import { Modal } from '../modal';
 import { useToast } from '../../toast';
 import { useActiveProject } from '../use-active-project';
 
@@ -106,6 +108,7 @@ function ProjectPlans({
 }) {
   const [plans, setPlans] = useState<TestPlan[]>([]);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
   const projectBase = `${base}/projects/${projectId}`;
 
   const reload = useCallback(async () => {
@@ -139,25 +142,17 @@ function ProjectPlans({
 
   return (
     <section className="rounded-card border border-line bg-white p-6">
-      <form
-        className="mb-5 flex gap-2"
-        onSubmit={(event) => {
-          event.preventDefault();
-          const title = String(new FormData(event.currentTarget).get('title') ?? '').trim();
-          event.currentTarget.reset();
-          void guard(async () => {
-            await json(`${projectBase}/test-plans`, {
-              method: 'POST',
-              body: JSON.stringify({ title }),
-            });
-          });
-        }}
-      >
-        <input name="title" required placeholder="New test plan title" className={inputClasses} />
-        <button type="submit" className={buttonClasses}>
-          + Test plan
+      <div className="mb-5 flex items-center justify-between">
+        <h2 className="text-sm font-bold uppercase tracking-wide text-muted">Test plans</h2>
+        <button
+          type="button"
+          onClick={() => setCreating(true)}
+          className={`${buttonClasses} flex items-center gap-1.5`}
+        >
+          <Plus aria-hidden className="h-4 w-4" />
+          New test plan
         </button>
-      </form>
+      </div>
 
       {plans.length === 0 ? (
         <p className="text-sm text-muted">No test plans in this project yet.</p>
@@ -227,6 +222,47 @@ function ProjectPlans({
             </li>
           ))}
         </ul>
+      )}
+      {creating && (
+        <Modal title="New test plan" onClose={() => setCreating(false)}>
+          <form
+            className="flex flex-col gap-4"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const title = String(new FormData(event.currentTarget).get('title') ?? '').trim();
+              if (!title) return;
+              setCreating(false);
+              void guard(async () => {
+                await json(`${projectBase}/test-plans`, {
+                  method: 'POST',
+                  body: JSON.stringify({ title }),
+                });
+              });
+            }}
+          >
+            <label className="flex flex-col gap-1.5 text-sm font-semibold text-ink">
+              Title
+              <input
+                name="title"
+                required
+                placeholder="e.g. Release 1.0 regression"
+                className={inputClasses}
+              />
+            </label>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setCreating(false)}
+                className={ghostButtonClasses}
+              >
+                Cancel
+              </button>
+              <button type="submit" className={buttonClasses}>
+                Create test plan
+              </button>
+            </div>
+          </form>
+        </Modal>
       )}
     </section>
   );

@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 
+import { Select } from '../select';
+
 import { useToast } from '../../toast';
 
 interface InvitationRow {
@@ -94,17 +96,13 @@ export function InvitationsPanel({
           onChange={(event) => setEmail(event.target.value)}
           className="min-w-0 flex-1 rounded-[10px] border border-line bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-muted/70 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
         />
-        <select
-          value={roleId}
-          onChange={(event) => setRoleId(event.target.value)}
-          className="rounded-[10px] border border-line bg-white px-2.5 py-2.5 text-sm text-ink focus:border-primary focus:outline-none"
-        >
-          {roles.map((role) => (
-            <option key={role.id} value={role.id}>
-              {role.name}
-            </option>
-          ))}
-        </select>
+        <div className="w-44">
+          <Select
+            value={roleId}
+            onChange={setRoleId}
+            options={roles.map((role) => ({ value: role.id, label: role.name }))}
+          />
+        </div>
         <button
           type="submit"
           disabled={pending}
@@ -123,7 +121,12 @@ export function InvitationsPanel({
               <div>
                 <p className="text-sm font-semibold text-ink">{invitation.email}</p>
                 <p className="text-xs text-muted">
-                  expires {new Date(invitation.expiresAt).toLocaleDateString()}
+                  {/* fixed locale + UTC keeps server and client HTML identical */}
+                  expires{' '}
+                  {new Date(invitation.expiresAt).toLocaleDateString('en-GB', {
+                    dateStyle: 'medium',
+                    timeZone: 'UTC',
+                  })}
                 </p>
               </div>
               <div className="flex items-center gap-3">

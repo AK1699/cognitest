@@ -18,8 +18,9 @@ export const projects = productSchema.table(
     organizationId: uuid('organization_id')
       .notNull()
       .references(() => organizations.id),
-    // every project belongs to a team: org > team > project
-    teamId: uuid('team_id').notNull(),
+    // optional org > team > project mapping (Jira model): a project may have
+    // an owning team, but teams are never a gate on project creation
+    teamId: uuid('team_id'),
     // short human identifier unique within the org, e.g. CORE
     key: text('key').notNull(),
     name: text('name').notNull(),

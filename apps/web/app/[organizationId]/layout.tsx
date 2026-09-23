@@ -22,7 +22,7 @@ interface TeamsResponse {
 }
 
 interface ProjectsResponse {
-  projects: { id: string; key: string; name: string; status: string; teamId: string }[];
+  projects: { id: string; key: string; name: string; status: string; teamId: string | null }[];
 }
 
 /** App shell for every organization module: sidebar + scrollable content pane. */
@@ -60,11 +60,12 @@ export default async function OrganizationLayout({
                     name: m.organization.name,
                   }))}
                   teams={(teams?.teams ?? []).map(({ id, name }) => ({ id, name }))}
-                  projects={(projects?.projects ?? []).map(({ id, key, name, status }) => ({
+                  projects={(projects?.projects ?? []).map(({ id, key, name, status, teamId }) => ({
                     id,
                     key,
                     name,
                     status,
+                    teamId,
                   }))}
                   context={
                     <Suspense>

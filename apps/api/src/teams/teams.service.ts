@@ -8,7 +8,7 @@ import { and, eq } from 'drizzle-orm';
 
 import { AuditService } from '../audit/audit.service';
 import { AuthorizationService } from '../authz/authorization.service';
-import { isUniqueViolation } from '../common/db-errors';
+import { isForeignKeyViolation, isUniqueViolation } from '../common/db-errors';
 import { organizationMembers, teamMembers, teams } from '../db/schema';
 import { TenantDb } from '../db/tenant-db.service';
 
@@ -63,7 +63,13 @@ export class TeamsService {
       const deleted = await tx
         .delete(teams)
         .where(eq(teams.id, teamId))
-        .returning({ id: teams.id });
+        .returning({ id: teams.id })
+        .catch((error: unknown) => {
+          // projects_team_org_fk is ON DELETE RESTRICT
+          throw isForeignKeyViolation(error)
+            ? new ConflictException('Move or delete this team’s projects first')
+            : error;
+        });
       if (deleted.length === 0) throw new NotFoundException();
       await this.audit.log(
         { action: 'TEAM_DELETED', resourceType: 'team', resourceId: teamId },

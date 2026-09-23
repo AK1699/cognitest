@@ -1,8 +1,11 @@
 'use client';
 
+import { Plus } from 'lucide-react';
+
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { Select } from '../select';
 import { useToast } from '../../toast';
 import { useActiveProject } from '../use-active-project';
 
@@ -12,7 +15,7 @@ interface Project {
   name: string;
   description: string | null;
   status: string;
-  teamId: string;
+  teamId: string | null;
 }
 
 interface Team {
@@ -39,7 +42,7 @@ function ProjectFormFields({
   defaults,
 }: {
   teams: Team[];
-  defaults?: { name: string; description: string | null; teamId: string };
+  defaults?: { name: string; description: string | null; teamId: string | null };
 }) {
   return (
     <>
@@ -65,13 +68,14 @@ function ProjectFormFields({
       </label>
       <label className="flex flex-col gap-1.5 text-sm font-semibold text-ink">
         Team
-        <select name="teamId" required defaultValue={defaults?.teamId} className={inputClasses}>
-          {teams.map((team) => (
-            <option key={team.id} value={team.id}>
-              {team.name}
-            </option>
-          ))}
-        </select>
+        <Select
+          name="teamId"
+          defaultValue={defaults?.teamId ?? ''}
+          options={[
+            { value: '', label: 'No team' },
+            ...teams.map((team) => ({ value: team.id, label: team.name })),
+          ]}
+        />
       </label>
     </>
   );
@@ -153,14 +157,19 @@ export function ProjectsManager({
     return {
       name: String(form.get('name') ?? '').trim(),
       description: description || null,
-      teamId: String(form.get('teamId') ?? ''),
+      teamId: String(form.get('teamId') ?? '') || null,
     };
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-end">
-        <button type="button" onClick={() => setCreating(true)} className={primaryButtonClasses}>
+        <button
+          type="button"
+          onClick={() => setCreating(true)}
+          className={`${primaryButtonClasses} flex items-center gap-1.5`}
+        >
+          <Plus aria-hidden className="h-4 w-4" />
           New project
         </button>
       </div>
@@ -179,7 +188,11 @@ export function ProjectsManager({
                   className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 self-stretch rounded-[8px] px-2 py-1 text-left transition-colors hover:bg-primary-tint/40"
                 >
                   <span className="truncate text-sm text-muted">
-                    {teamName(project.teamId)} <span aria-hidden>/</span>{' '}
+                    {project.teamId && (
+                      <>
+                        {teamName(project.teamId)} <span aria-hidden>/</span>{' '}
+                      </>
+                    )}
                     <span className="font-semibold text-ink hover:text-primary-deep">
                       {project.name}
                     </span>
@@ -231,7 +244,7 @@ export function ProjectsManager({
                   method: 'POST',
                   body: JSON.stringify({
                     name: payload.name,
-                    teamId: payload.teamId,
+                    ...(payload.teamId ? { teamId: payload.teamId } : {}),
                     ...(payload.description ? { description: payload.description } : {}),
                   }),
                 },

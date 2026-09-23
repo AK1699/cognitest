@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Karla, Space_Grotesk } from 'next/font/google';
+import Script from 'next/script';
 import type { ReactNode } from 'react';
 
 import './globals.css';
@@ -25,15 +26,15 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${spaceGrotesk.variable} ${karla.variable}`} suppressHydrationWarning>
-      <head>
+      <body className="min-h-screen bg-cream font-body text-ink antialiased">
         {/* apply the stored theme before paint to avoid a light-mode flash */}
-        <script
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `try{var t=localStorage.getItem('cognitest-theme');if(t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.setAttribute('data-theme','dark')}catch(e){}`,
           }}
         />
-      </head>
-      <body className="min-h-screen bg-cream font-body text-ink antialiased">
         <ToastProvider>{children}</ToastProvider>
       </body>
     </html>

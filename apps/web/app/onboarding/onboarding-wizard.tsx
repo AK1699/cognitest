@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { Field, PrimaryButton } from '../(auth)/components';
+import { Select } from '../[organizationId]/select';
 import { useToast } from '../toast';
 
 type Step = 'organization' | 'team' | 'invite';
@@ -264,21 +265,15 @@ export function OnboardingWizard({
                 }
                 className="min-w-0 flex-1 rounded-[10px] border border-line bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-muted/70 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
               />
-              <select
-                value={row.roleId}
-                onChange={(event) =>
-                  setInvites((rows) =>
-                    rows.map((r, i) => (i === index ? { ...r, roleId: event.target.value } : r)),
-                  )
-                }
-                className="rounded-[10px] border border-line bg-white px-2.5 py-2.5 text-sm text-ink focus:border-primary focus:outline-none"
-              >
-                {roles.map((role) => (
-                  <option key={role.id} value={role.id}>
-                    {role.name}
-                  </option>
-                ))}
-              </select>
+              <div className="w-40 shrink-0">
+                <Select
+                  value={row.roleId}
+                  onChange={(roleId) =>
+                    setInvites((rows) => rows.map((r, i) => (i === index ? { ...r, roleId } : r)))
+                  }
+                  options={roles.map((role) => ({ value: role.id, label: role.name }))}
+                />
+              </div>
             </div>
           ))}
           <button

@@ -48,7 +48,8 @@ export function SessionsPanel({ initialSessions }: { initialSessions: SessionRow
                   </span>
                 )}
               </p>
-              <p className="text-xs text-muted">
+              {/* local-time display; server TZ may differ, so skip hydration diffing */}
+              <p suppressHydrationWarning className="text-xs text-muted">
                 Last active{' '}
                 {new Date(session.lastSeenAt ?? session.createdAt).toLocaleString('en-GB', {
                   dateStyle: 'medium',

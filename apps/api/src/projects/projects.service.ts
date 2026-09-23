@@ -62,7 +62,9 @@ export class ProjectsService {
     input: { key?: string; name: string; description?: string; teamId?: string },
   ) {
     return this.tenantDb.run(async (tx) => {
-      const teamId = await this.resolveTeam(tx, organizationId, input.teamId);
+      const teamId = input.teamId
+        ? await this.validateTeam(tx, organizationId, input.teamId)
+        : null;
       // auto-derived keys get numeric suffixes on collision; explicit keys 409
       const keys = input.key ? [input.key] : candidateKeys(input.name);
       let project: typeof projects.$inferSelect | undefined;
@@ -97,27 +99,16 @@ export class ProjectsService {
     });
   }
 
-  /** Validates an explicit team, or falls back to the organisation's first. */
-  private async resolveTeam(
+  private async validateTeam(
     tx: Database,
     organizationId: string,
-    teamId?: string,
+    teamId: string,
   ): Promise<string> {
-    if (teamId) {
-      const [team] = await tx
-        .select({ id: teams.id })
-        .from(teams)
-        .where(and(eq(teams.id, teamId), eq(teams.organizationId, organizationId)));
-      if (!team) throw new BadRequestException('Team not found in this organization');
-      return team.id;
-    }
     const [team] = await tx
       .select({ id: teams.id })
       .from(teams)
-      .where(eq(teams.organizationId, organizationId))
-      .orderBy(teams.createdAt)
-      .limit(1);
-    if (!team) throw new BadRequestException('Create a team before creating projects');
+      .where(and(eq(teams.id, teamId), eq(teams.organizationId, organizationId)));
+    if (!team) throw new BadRequestException('Team not found in this organization');
     return team.id;
   }
 
@@ -135,7 +126,7 @@ export class ProjectsService {
       name?: string;
       description?: string | null;
       status?: 'active' | 'archived';
-      teamId?: string;
+      teamId?: string | null;
     },
   ) {
     return this.tenantDb.run(async (tx) => {
@@ -145,7 +136,7 @@ export class ProjectsService {
           .from(projects)
           .where(eq(projects.id, projectId));
         if (!current) throw new NotFoundException();
-        await this.resolveTeam(tx, current.organizationId, patch.teamId);
+        await this.validateTeam(tx, current.organizationId, patch.teamId);
       }
       const [project] = await tx
         .update(projects)

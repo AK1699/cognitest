@@ -10,6 +10,7 @@ import {
   Settings,
   Shield,
   Users,
+  UsersRound,
   Workflow,
   Zap,
 } from 'lucide-react';
@@ -93,6 +94,13 @@ const NAV_GROUPS: { title: string | null; items: NavItem[] }[] = [
         iconColor: 'text-primary',
         enabled: true,
       },
+      {
+        segment: 'teams',
+        label: 'Teams',
+        icon: UsersRound,
+        iconColor: 'text-primary',
+        enabled: true,
+      },
       { segment: 'members', label: 'Members', icon: Users, iconColor: 'text-pass', enabled: true },
       {
         segment: 'roles',
@@ -127,6 +135,7 @@ export interface ProjectOption {
   key: string;
   name: string;
   status: string;
+  teamId: string | null;
 }
 
 export function OrgSwitcher({
@@ -197,9 +206,9 @@ export function OrgSwitcher({
           {teams.length > 0 && (
             <div className="mt-2">
               <p className="px-2 text-[10px] font-bold uppercase tracking-wide text-muted">Teams</p>
-              {teams.map((team, index) => {
-                // the first team is the active one — same rule as the header breadcrumb
-                const active = index === 0;
+              {teams.map((team) => {
+                // active team = the active project's owning team
+                const active = team.id === activeProject?.teamId;
                 return (
                   <div
                     key={team.id}

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { apiGet } from '../../../lib/api';
+import { InviteMember } from './invite-member';
 
 export const metadata: Metadata = { title: 'Members — Cognitest' };
 export const dynamic = 'force-dynamic';
@@ -18,6 +19,9 @@ interface MembersResponse {
 interface TeamsResponse {
   teams: { id: string; name: string; slug: string }[];
 }
+interface RolesResponse {
+  roles: { id: string; key: string; name: string; isSystem: boolean }[];
+}
 
 const ROLE_LABELS: Record<string, string> = {
   admin: 'Admin',
@@ -34,14 +38,26 @@ export default async function MembersPage({
   params: Promise<{ organizationId: string }>;
 }) {
   const { organizationId } = await params;
-  const [members, teams] = await Promise.all([
+  const [members, teams, roles] = await Promise.all([
     apiGet<MembersResponse>(`/organizations/${organizationId}/members`),
     apiGet<TeamsResponse>(`/organizations/${organizationId}/teams`),
+    // 403 without role.read → null → invite button hidden
+    apiGet<RolesResponse>(`/organizations/${organizationId}/roles`),
   ]);
+  const inviteRoles = (roles?.roles ?? []).filter((role) => role.isSystem && role.key !== 'admin');
 
   return (
     <div>
       <h1 className="mb-6 text-3xl font-bold text-primary-deep">Members</h1>
+
+      {inviteRoles.length > 0 && (
+        <div className="mb-4 flex items-center justify-end">
+          <InviteMember
+            organizationId={organizationId}
+            roles={inviteRoles.map(({ id, key, name }) => ({ id, key, name }))}
+          />
+        </div>
+      )}
 
       <section className="rounded-card border border-line bg-white p-6">
         <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-muted">
@@ -77,9 +93,6 @@ export default async function MembersPage({
             </li>
           ))}
         </ul>
-        <p className="mt-4 text-xs text-muted">
-          Invite new members from Settings — they join with the role you pick there.
-        </p>
       </section>
     </div>
   );

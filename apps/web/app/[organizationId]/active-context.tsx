@@ -7,7 +7,7 @@ interface ProjectOption {
   key: string;
   name: string;
   status: string;
-  teamId: string;
+  teamId: string | null;
 }
 
 interface TeamOption {
@@ -30,9 +30,10 @@ export function ActiveContext({
   projects: ProjectOption[];
 }) {
   const [project] = useActiveProject(organizationId, projects);
-  const teamName = project
+  // team segment only when the active project has an owning team
+  const teamName = project?.teamId
     ? (teams.find((team) => team.id === project.teamId)?.name ?? null)
-    : (teams[0]?.name ?? null);
+    : null;
 
   if (!teamName && !project) return null;
 
