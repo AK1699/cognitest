@@ -396,7 +396,9 @@ function EditDesignModal({
     <Modal title="Edit design" onClose={onClose}>
       <div className="flex flex-col gap-4">
         <label className="flex flex-col gap-1.5 text-sm font-semibold text-ink">
-          Name <span className="text-fail">*</span>
+          <span>
+            Name <span className="text-fail">*</span>
+          </span>
           <input
             value={name}
             onChange={(event) => setName(event.target.value)}

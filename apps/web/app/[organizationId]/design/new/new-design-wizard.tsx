@@ -1,8 +1,18 @@
 'use client';
 
-import { FileUp, PenLine, Plus, Search, Sparkles, Trash2 } from 'lucide-react';
+import {
+  FileText,
+  FileUp,
+  PenLine,
+  Plus,
+  Search,
+  Sparkles,
+  Trash2,
+  UploadCloud,
+  X,
+} from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { useToast } from '../../../toast';
 import { useActiveProject } from '../../use-active-project';
@@ -66,6 +76,7 @@ export function NewDesignWizard({
   const [projectId, setProjectId] = useState(activeProject?.id ?? projects[0]?.id ?? '');
   const [description, setDescription] = useState('');
   const [drafts, setDrafts] = useState<DraftRequirement[]>([emptyDraft()]);
+  const [files, setFiles] = useState<File[]>([]);
   const [saving, setSaving] = useState(false);
 
   const projectOptions = projects.map((p) => ({ value: p.id, label: p.name }));
@@ -171,7 +182,9 @@ export function NewDesignWizard({
           <h2 className="text-lg font-bold text-ink">Design Information</h2>
           <div className="mt-5 flex flex-col gap-5">
             <label className="flex flex-col gap-1.5 text-sm font-semibold text-ink">
-              Design name <span className="text-fail">*</span>
+              <span>
+                Design name <span className="text-fail">*</span>
+              </span>
               <input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
@@ -180,7 +193,9 @@ export function NewDesignWizard({
               />
             </label>
             <label className="flex flex-col gap-1.5 text-sm font-semibold text-ink">
-              Project <span className="text-fail">*</span>
+              <span>
+                Project <span className="text-fail">*</span>
+              </span>
               <Select options={projectOptions} value={projectId} onChange={setProjectId} />
             </label>
             <label className="flex flex-col gap-1.5 text-sm font-semibold text-ink">
@@ -212,12 +227,24 @@ export function NewDesignWizard({
 
       {phase === 'requirements' && (
         <div className="rounded-card border border-line bg-white p-6">
-          {source !== 'manual' && (
+          {source === 'document' && (
+            <>
+              <DocumentUpload files={files} onChange={setFiles} />
+              <div className="mb-5 flex items-start gap-3 rounded-card border border-accent/30 bg-accent-tint/40 p-4">
+                <Sparkles aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-accent-deep" />
+                <p className="text-sm text-accent-deep">
+                  Automatic extraction is coming soon, so uploaded files aren’t processed yet — add
+                  the requirements manually below for now.
+                </p>
+              </div>
+            </>
+          )}
+          {source === 'jira' && (
             <div className="mb-5 flex items-start gap-3 rounded-card border border-accent/30 bg-accent-tint/40 p-4">
               <Sparkles aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-accent-deep" />
               <p className="text-sm text-accent-deep">
-                <span className="font-bold capitalize">{source}</span> import is coming soon. For now,
-                add the requirements manually below — you can re-import once extraction ships.
+                <span className="font-bold">JIRA</span> import is coming soon. For now, add the
+                requirements manually below — you can re-import once it ships.
               </p>
             </div>
           )}
@@ -332,6 +359,121 @@ function Review({ label, value }: { label: string; value: string }) {
     <div className="rounded-[10px] bg-cream/60 px-4 py-3">
       <dt className="text-xs font-bold uppercase tracking-wide text-muted">{label}</dt>
       <dd className="mt-0.5 text-sm font-semibold capitalize text-ink">{value}</dd>
+    </div>
+  );
+}
+
+/* ----------------------------------------------------- document upload (staging) */
+
+const ACCEPT_EXTENSIONS = ['pdf', 'md', 'markdown', 'doc', 'docx'];
+const ACCEPT_ATTR = '.pdf,.md,.markdown,.doc,.docx';
+const MAX_MB = 10;
+const MAX_BYTES = MAX_MB * 1024 * 1024;
+
+function formatSize(bytes: number): string {
+  return bytes < 1024 * 1024
+    ? `${Math.max(1, Math.round(bytes / 1024))} KB`
+    : `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function DocumentUpload({
+  files,
+  onChange,
+}: {
+  files: File[];
+  onChange: (files: File[]) => void;
+}) {
+  const toast = useToast();
+  const [dragging, setDragging] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  function accept(list: FileList | null) {
+    if (!list) return;
+    const added: File[] = [];
+    for (const file of Array.from(list)) {
+      const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
+      if (!ACCEPT_EXTENSIONS.includes(ext)) {
+        toast.push(`${file.name}: only PDF, Markdown or Word files are allowed`, 'error');
+        continue;
+      }
+      if (file.size > MAX_BYTES) {
+        toast.push(`${file.name}: exceeds the ${MAX_MB} MB limit`, 'error');
+        continue;
+      }
+      if (files.some((f) => f.name === file.name && f.size === file.size)) continue;
+      added.push(file);
+    }
+    if (added.length) onChange([...files, ...added]);
+  }
+
+  return (
+    <div className="mb-5">
+      <div
+        onDragOver={(event) => {
+          event.preventDefault();
+          setDragging(true);
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(event) => {
+          event.preventDefault();
+          setDragging(false);
+          accept(event.dataTransfer.files);
+        }}
+        className={`flex flex-col items-center justify-center rounded-card border-2 border-dashed p-8 text-center transition-colors ${
+          dragging ? 'border-accent bg-accent-tint/40' : 'border-line bg-cream/40'
+        }`}
+      >
+        <UploadCloud aria-hidden className="h-8 w-8 text-primary" />
+        <p className="mt-2 text-sm text-ink">
+          Drag &amp; drop files here, or{' '}
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            className="font-semibold text-accent hover:text-accent-deep"
+          >
+            browse
+          </button>
+        </p>
+        <p className="mt-1 text-xs text-muted">
+          PDF, Markdown or Word (.doc, .docx) · up to {MAX_MB} MB each
+        </p>
+        <input
+          ref={inputRef}
+          type="file"
+          accept={ACCEPT_ATTR}
+          multiple
+          className="hidden"
+          onChange={(event) => {
+            accept(event.target.files);
+            event.target.value = '';
+          }}
+        />
+      </div>
+
+      {files.length > 0 && (
+        <ul className="mt-3 space-y-2">
+          {files.map((file, index) => (
+            <li
+              key={`${file.name}-${index}`}
+              className="flex items-center gap-3 rounded-[10px] border border-line bg-white px-4 py-2.5"
+            >
+              <FileText aria-hidden className="h-4 w-4 shrink-0 text-muted" />
+              <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">
+                {file.name}
+              </span>
+              <span className="shrink-0 text-xs text-muted">{formatSize(file.size)}</span>
+              <button
+                type="button"
+                aria-label={`Remove ${file.name}`}
+                onClick={() => onChange(files.filter((_, i) => i !== index))}
+                className="shrink-0 text-muted transition-colors hover:text-fail"
+              >
+                <X aria-hidden className="h-4 w-4" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
