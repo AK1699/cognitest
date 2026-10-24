@@ -24,11 +24,22 @@ export class RequirementsService {
     );
   }
 
+  /** Requirements gathered under a specific design (Design module). */
+  async listByDesign(designId: string) {
+    return this.tenantDb.run((tx) =>
+      tx
+        .select()
+        .from(requirements)
+        .where(eq(requirements.designId, designId))
+        .orderBy(desc(requirements.createdAt)),
+    );
+  }
+
   async create(
     projectId: string,
     organizationId: string,
     userId: string,
-    input: { title: string; description?: string },
+    input: { title: string; description?: string; designId?: string },
   ) {
     return this.tenantDb.run(async (tx) => {
       const [requirement] = await tx

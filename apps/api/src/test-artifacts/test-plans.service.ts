@@ -37,11 +37,22 @@ export class TestPlansService {
     );
   }
 
+  /** Test plans generated for a specific design (Design module artefacts tab). */
+  async listByDesign(designId: string) {
+    return this.tenantDb.run((tx) =>
+      tx
+        .select()
+        .from(testPlans)
+        .where(eq(testPlans.designId, designId))
+        .orderBy(desc(testPlans.createdAt)),
+    );
+  }
+
   async create(
     projectId: string,
     organizationId: string,
     userId: string,
-    input: { title: string; description?: string; requirementId?: string },
+    input: { title: string; description?: string; requirementId?: string; designId?: string },
   ) {
     return this.tenantDb.run(async (tx) => {
       if (input.requirementId)

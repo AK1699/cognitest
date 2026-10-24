@@ -75,3 +75,141 @@
     letter-spacing: -0.015em;
   }
 }
+
+/*
+ * Rendered-Markdown typography for requirement descriptions. Scoped to
+ * `.md-body` so it only styles content from the Markdown renderer, using the
+ * house tokens throughout.
+ */
+.md-body {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--color-ink);
+}
+.md-body > *:first-child {
+  margin-top: 0;
+}
+.md-body > *:last-child {
+  margin-bottom: 0;
+}
+.md-body p {
+  margin: 0.5rem 0;
+}
+.md-body h2 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 1rem 0 0.4rem;
+}
+.md-body h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0.9rem 0 0.35rem;
+}
+.md-body h4 {
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin: 0.8rem 0 0.3rem;
+}
+.md-body ul,
+.md-body ol {
+  margin: 0.5rem 0;
+  padding-left: 1.4rem;
+}
+.md-body ul {
+  list-style: disc;
+}
+.md-body ol {
+  list-style: decimal;
+}
+.md-body li {
+  margin: 0.2rem 0;
+}
+.md-body a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.md-body strong {
+  font-weight: 700;
+}
+.md-body em {
+  font-style: italic;
+}
+.md-body blockquote {
+  margin: 0.6rem 0;
+  padding: 0.3rem 0 0.3rem 0.9rem;
+  border-left: 3px solid var(--color-primary);
+  color: var(--color-muted);
+}
+.md-body code {
+  font-family: var(--font-mono);
+  font-size: 0.8em;
+  background: var(--color-primary-tint);
+  color: var(--color-primary-deep);
+  padding: 0.1em 0.35em;
+  border-radius: 5px;
+}
+.md-body pre.md-code {
+  margin: 0.6rem 0;
+  padding: 0.8rem 1rem;
+  background: var(--color-cream);
+  border: 1px solid var(--color-line);
+  border-radius: 10px;
+  overflow-x: auto;
+}
+.md-body pre.md-code code {
+  font-size: 0.8rem;
+  background: transparent;
+  color: var(--color-ink);
+  padding: 0;
+  white-space: pre;
+}
+.md-body .gk-kw {
+  color: var(--color-accent);
+  font-weight: 700;
+}
+/* syntax-highlight tokens for fenced code blocks */
+.md-body .tok-kw {
+  color: var(--color-accent-deep);
+  font-weight: 600;
+}
+.md-body .tok-str {
+  color: var(--color-pass);
+}
+.md-body .tok-num {
+  color: var(--color-warn);
+}
+.md-body .tok-com {
+  color: var(--color-muted);
+  font-style: italic;
+}
+.md-body .tok-lit {
+  color: var(--color-fail);
+  font-weight: 600;
+}
+.md-body .md-table-wrap {
+  margin: 0.6rem 0;
+  overflow-x: auto;
+}
+.md-body table.md-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.85rem;
+}
+.md-body table.md-table th,
+.md-body table.md-table td {
+  border: 1px solid var(--color-line);
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+  vertical-align: top;
+}
+.md-body table.md-table th {
+  background: var(--color-primary-tint);
+  color: var(--color-primary-deep);
+  font-weight: 700;
+}
+.md-body hr {
+  border: none;
+  border-top: 1px solid var(--color-line);
+  margin: 1rem 0;
+}

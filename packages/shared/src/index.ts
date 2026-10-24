@@ -10,4 +10,5 @@ export * from './schemas/rbac';
 export * from './schemas/session';
 export * from './schemas/team';
 export * from './schemas/test-artifacts';
+export * from './schemas/test-design';
 export * from './schemas/user';

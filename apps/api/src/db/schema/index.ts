@@ -10,4 +10,5 @@ export * from './schemas';
 export * from './sessions';
 export * from './teams';
 export * from './test-artifacts';
+export * from './test-designs';
 export * from './users';

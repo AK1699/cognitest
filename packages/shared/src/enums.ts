@@ -76,6 +76,25 @@ export const TestPlanStatus = {
   Archived: 'archived',
 } as const satisfies Record<string, TestPlanStatus>;
 
+// Test designs share the plan lifecycle (draft → in_review → approved; archived
+// is the soft-delete terminal), plus a provenance marker for how it was created.
+export const DESIGN_STATUSES = ['draft', 'in_review', 'approved', 'archived'] as const;
+export type DesignStatus = (typeof DESIGN_STATUSES)[number];
+export const DesignStatus = {
+  Draft: 'draft',
+  InReview: 'in_review',
+  Approved: 'approved',
+  Archived: 'archived',
+} as const satisfies Record<string, DesignStatus>;
+
+export const DESIGN_SOURCES = ['manual', 'document', 'jira'] as const;
+export type DesignSource = (typeof DESIGN_SOURCES)[number];
+export const DesignSource = {
+  Manual: 'manual',
+  Document: 'document',
+  Jira: 'jira',
+} as const satisfies Record<string, DesignSource>;
+
 export const APPROVAL_STATUSES = ['pending', 'approved', 'rejected'] as const;
 export type ApprovalStatus = (typeof APPROVAL_STATUSES)[number];
 

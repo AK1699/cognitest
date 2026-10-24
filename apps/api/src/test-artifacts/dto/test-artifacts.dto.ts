@@ -2,14 +2,34 @@ import {
   approvalDecisionRequestSchema,
   createRequirementRequestSchema,
   createTestCaseRequestSchema,
+  createTestDesignRequestSchema,
   createTestPlanRequestSchema,
   createTestSuiteRequestSchema,
   updateRequirementRequestSchema,
   updateTestCaseRequestSchema,
+  updateTestDesignRequestSchema,
   updateTestPlanRequestSchema,
   updateTestSuiteRequestSchema,
 } from '@cognitest/shared';
-import type { RequirementStatus, TestCasePriority, TestStep } from '@cognitest/shared';
+import type {
+  DesignSource,
+  RequirementStatus,
+  TestCasePriority,
+  TestStep,
+} from '@cognitest/shared';
+
+export class CreateTestDesignDto {
+  static readonly zodSchema = createTestDesignRequestSchema;
+  name!: string;
+  description?: string;
+  source?: DesignSource;
+}
+
+export class UpdateTestDesignDto {
+  static readonly zodSchema = updateTestDesignRequestSchema;
+  name?: string;
+  description?: string | null;
+}
 
 export class CreateRequirementDto {
   static readonly zodSchema = createRequirementRequestSchema;

@@ -21,6 +21,7 @@ import { id, timestamps } from './helpers';
 import { organizations } from './organizations';
 import { projects } from './projects';
 import { productSchema } from './schemas';
+import { testDesigns } from './test-designs';
 import { users } from './users';
 
 export const requirementStatus = pgEnum('requirement_status', REQUIREMENT_STATUSES);
@@ -39,6 +40,8 @@ export const requirements = productSchema.table(
       .notNull()
       .references(() => organizations.id),
     projectId: uuid('project_id').notNull(),
+    // requirements may be gathered under a design, or stand alone in a project
+    designId: uuid('design_id'),
     title: text('title').notNull(),
     description: text('description'),
     status: requirementStatus('status').notNull().default('draft'),
@@ -49,11 +52,17 @@ export const requirements = productSchema.table(
   },
   (t) => [
     index('requirements_project_idx').on(t.projectId),
+    index('requirements_design_idx').on(t.designId),
     index('requirements_org_created_idx').on(t.organizationId, t.createdAt),
     foreignKey({
       name: 'requirements_project_org_fk',
       columns: [t.projectId, t.organizationId],
       foreignColumns: [projects.id, projects.organizationId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'requirements_design_org_fk',
+      columns: [t.designId, t.organizationId],
+      foreignColumns: [testDesigns.id, testDesigns.organizationId],
     }).onDelete('cascade'),
   ],
 );
@@ -66,6 +75,8 @@ export const testPlans = productSchema.table(
       .notNull()
       .references(() => organizations.id),
     projectId: uuid('project_id').notNull(),
+    // test plans generated for a design link back to it; ad-hoc plans leave it null
+    designId: uuid('design_id'),
     requirementId: uuid('requirement_id').references(() => requirements.id, {
       onDelete: 'set null',
     }),
@@ -81,12 +92,18 @@ export const testPlans = productSchema.table(
   },
   (t) => [
     index('test_plans_project_idx').on(t.projectId),
+    index('test_plans_design_idx').on(t.designId),
     index('test_plans_org_created_idx').on(t.organizationId, t.createdAt),
     unique('test_plans_id_org_uq').on(t.id, t.organizationId),
     foreignKey({
       name: 'test_plans_project_org_fk',
       columns: [t.projectId, t.organizationId],
       foreignColumns: [projects.id, projects.organizationId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'test_plans_design_org_fk',
+      columns: [t.designId, t.organizationId],
+      foreignColumns: [testDesigns.id, testDesigns.organizationId],
     }).onDelete('cascade'),
   ],
 );
