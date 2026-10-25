@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 import {
   APPROVAL_STATUSES,
+  DESIGN_SOURCES,
+  REQUIREMENT_PRIORITIES,
   REQUIREMENT_STATUSES,
   TEST_CASE_PRIORITIES,
   TEST_PLAN_STATUSES,
@@ -18,6 +20,8 @@ export const requirementSchema = z.object({
   title: z.string(),
   description: z.string().nullable(),
   status: z.enum(REQUIREMENT_STATUSES),
+  priority: z.enum(REQUIREMENT_PRIORITIES),
+  source: z.enum(DESIGN_SOURCES),
   createdBy: z.uuid(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
@@ -27,12 +31,16 @@ export type Requirement = z.infer<typeof requirementSchema>;
 export const createRequirementRequestSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
   description: z.string().max(10_000).optional(),
+  priority: z.enum(REQUIREMENT_PRIORITIES).optional(),
+  source: z.enum(DESIGN_SOURCES).optional(),
 });
 
 export const updateRequirementRequestSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   description: z.string().max(10_000).nullable().optional(),
   status: z.enum(REQUIREMENT_STATUSES).optional(),
+  priority: z.enum(REQUIREMENT_PRIORITIES).optional(),
+  source: z.enum(DESIGN_SOURCES).optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -46,6 +54,9 @@ export const testPlanSchema = z.object({
   requirementId: z.uuid().nullable(),
   title: z.string(),
   description: z.string().nullable(),
+  objective: z.string().nullable(),
+  scope: z.array(z.string()),
+  strategy: z.string().nullable(),
   status: z.enum(TEST_PLAN_STATUSES),
   version: z.number().int().positive(),
   createdBy: z.uuid(),
@@ -58,12 +69,18 @@ export const createTestPlanRequestSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
   description: z.string().max(10_000).optional(),
   requirementId: z.uuid().optional(),
+  objective: z.string().max(10_000).optional(),
+  scope: z.array(z.string().max(200)).max(100).optional(),
+  strategy: z.string().max(2000).optional(),
 });
 
 export const updateTestPlanRequestSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   description: z.string().max(10_000).nullable().optional(),
   requirementId: z.uuid().nullable().optional(),
+  objective: z.string().max(10_000).nullable().optional(),
+  scope: z.array(z.string().max(200)).max(100).optional(),
+  strategy: z.string().max(2000).nullable().optional(),
 });
 
 export const approvalDecisionRequestSchema = z.object({

@@ -65,6 +65,9 @@ export const InvitationStatus = {
 export const REQUIREMENT_STATUSES = ['draft', 'active', 'archived'] as const;
 export type RequirementStatus = (typeof REQUIREMENT_STATUSES)[number];
 
+export const REQUIREMENT_PRIORITIES = ['low', 'medium', 'high'] as const;
+export type RequirementPriority = (typeof REQUIREMENT_PRIORITIES)[number];
+
 // spec §53 lifecycle: Draft → Review → Approved (rejected drops back to draft);
 // editing an approved plan bumps the version and returns it to draft
 export const TEST_PLAN_STATUSES = ['draft', 'in_review', 'approved', 'archived'] as const;

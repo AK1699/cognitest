@@ -13,6 +13,7 @@ import {
 } from '@cognitest/shared';
 import type {
   DesignSource,
+  RequirementPriority,
   RequirementStatus,
   TestCasePriority,
   TestStep,
@@ -35,6 +36,8 @@ export class CreateRequirementDto {
   static readonly zodSchema = createRequirementRequestSchema;
   title!: string;
   description?: string;
+  priority?: RequirementPriority;
+  source?: DesignSource;
 }
 
 export class UpdateRequirementDto {
@@ -42,6 +45,8 @@ export class UpdateRequirementDto {
   title?: string;
   description?: string | null;
   status?: RequirementStatus;
+  priority?: RequirementPriority;
+  source?: DesignSource;
 }
 
 export class CreateTestPlanDto {
@@ -49,6 +54,9 @@ export class CreateTestPlanDto {
   title!: string;
   description?: string;
   requirementId?: string;
+  objective?: string;
+  scope?: string[];
+  strategy?: string;
 }
 
 export class UpdateTestPlanDto {
@@ -56,6 +64,9 @@ export class UpdateTestPlanDto {
   title?: string;
   description?: string | null;
   requirementId?: string | null;
+  objective?: string | null;
+  scope?: string[];
+  strategy?: string | null;
 }
 
 export class ApprovalDecisionDto {

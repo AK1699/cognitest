@@ -218,12 +218,18 @@ describe('test designs (e2e)', () => {
     const generated = await call('POST', `/designs/${design.id}/generate`, admin);
     expect(generated.statusCode).toBe(200);
     const result = generated.json() as {
-      testPlan: { id: string };
+      testPlan: { id: string; objective: string; scope: string[]; strategy: string };
       suiteCount: number;
       caseCount: number;
     };
     expect(result.suiteCount).toBe(2); // one suite per requirement
     expect(result.caseCount).toBe(2); // one scenario + one placeholder
+
+    // plan metadata is derived by rules (objective/scope/strategy)
+    expect(result.testPlan.objective).toBeTruthy();
+    expect(result.testPlan.scope).toEqual(expect.arrayContaining(['Login', 'Logout']));
+    // "Users can sign in" → Functional; the login requirement mentions sign-in only
+    expect(result.testPlan.strategy).toContain('Functional');
 
     const plans = await call('GET', `/designs/${design.id}/test-plans`, admin);
     expect((plans.json() as { testPlans: unknown[] }).testPlans).toHaveLength(1);

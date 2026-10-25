@@ -6,6 +6,7 @@
 import type {
   DesignSource,
   DesignStatus,
+  RequirementPriority,
   RequirementStatus,
   TestCasePriority,
 } from '@cognitest/shared';
@@ -32,6 +33,8 @@ export interface Requirement {
   title: string;
   description: string | null;
   status: RequirementStatus;
+  priority: RequirementPriority;
+  source: DesignSource;
   designId: string | null;
   createdAt: string;
 }
@@ -40,6 +43,9 @@ export interface TestPlan {
   id: string;
   title: string;
   description: string | null;
+  objective: string | null;
+  scope: string[];
+  strategy: string | null;
   status: DesignStatus; // test plans share the draft/in_review/approved/archived set
   version: number;
   requirementId: string | null;
@@ -122,7 +128,15 @@ export function designApi(organizationId: string, projectId: string) {
 
     listRequirements: (designId: string) =>
       request<{ requirements: Requirement[] }>(`${designBase(designId)}/requirements`),
-    createRequirement: (designId: string, body: { title: string; description?: string }) =>
+    createRequirement: (
+      designId: string,
+      body: {
+        title: string;
+        description?: string;
+        priority?: RequirementPriority;
+        source?: DesignSource;
+      },
+    ) =>
       request<{ requirement: Requirement }>(`${designBase(designId)}/requirements`, {
         method: 'POST',
         body: JSON.stringify(body),
@@ -130,7 +144,13 @@ export function designApi(organizationId: string, projectId: string) {
     updateRequirement: (
       designId: string,
       requirementId: string,
-      body: { title?: string; description?: string | null; status?: RequirementStatus },
+      body: {
+        title?: string;
+        description?: string | null;
+        status?: RequirementStatus;
+        priority?: RequirementPriority;
+        source?: DesignSource;
+      },
     ) =>
       request<{ requirement: Requirement }>(
         `${designBase(designId)}/requirements/${requirementId}`,
@@ -153,7 +173,16 @@ export function designApi(organizationId: string, projectId: string) {
         `${designBase(designId)}/generate`,
         { method: 'POST' },
       ),
-    updatePlan: (planId: string, body: { title?: string; description?: string | null }) =>
+    updatePlan: (
+      planId: string,
+      body: {
+        title?: string;
+        description?: string | null;
+        objective?: string | null;
+        scope?: string[];
+        strategy?: string | null;
+      },
+    ) =>
       request<{ testPlan: TestPlan }>(`${base}/test-plans/${planId}`, {
         method: 'PATCH',
         body: JSON.stringify(body),

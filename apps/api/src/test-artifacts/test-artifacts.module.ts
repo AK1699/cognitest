@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 
+import { AiService } from '../ai/ai.service';
 import { DesignsController } from './designs.controller';
 import { DesignsService } from './designs.service';
 import { RequirementsService } from './requirements.service';
@@ -9,6 +10,6 @@ import { TestPlansService } from './test-plans.service';
 
 @Module({
   controllers: [TestArtifactsController, DesignsController],
-  providers: [DesignsService, RequirementsService, TestPlansService, TestCasesService],
+  providers: [AiService, DesignsService, RequirementsService, TestPlansService, TestCasesService],
 })
 export class TestArtifactsModule {}

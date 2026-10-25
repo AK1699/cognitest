@@ -11,6 +11,7 @@ import {
   MoreHorizontal,
   Pencil,
   Plus,
+  Search,
   Sparkles,
   Trash2,
 } from 'lucide-react';
@@ -18,7 +19,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { RequirementStatus } from '@cognitest/shared';
+import type { DesignSource, RequirementPriority, RequirementStatus } from '@cognitest/shared';
 
 import { Modal } from '../../modal';
 import { Select } from '../../select';
@@ -325,7 +326,12 @@ export function DesignWorkspace({
         <OverviewTab design={design} onReview={() => setTab('approval')} />
       )}
       {tab === 'requirements' && (
-        <RequirementsTab api={api} designId={designId} onChange={reload} />
+        <RequirementsTab
+          api={api}
+          designId={designId}
+          designSource={design.source}
+          onChange={reload}
+        />
       )}
       {tab === 'analysis' && (
         <ComingSoon
@@ -507,14 +513,29 @@ const REQUIREMENT_STATUS_OPTIONS = [
   { value: 'active', label: 'Active' },
   { value: 'archived', label: 'Archived' },
 ];
+const REQUIREMENT_PRIORITY_OPTIONS = [
+  { value: 'high', label: 'High' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'low', label: 'Low' },
+];
+const REQUIREMENT_SOURCE_OPTIONS = [
+  { value: 'manual', label: 'Manual' },
+  { value: 'document', label: 'Document' },
+  { value: 'jira', label: 'JIRA' },
+];
+const PRIORITY_FILTER = [{ value: 'all', label: 'Priority: All' }, ...REQUIREMENT_PRIORITY_OPTIONS];
+const SOURCE_FILTER = [{ value: 'all', label: 'Source: All' }, ...REQUIREMENT_SOURCE_OPTIONS];
+const STATUS_FILTER = [{ value: 'all', label: 'Status: All' }, ...REQUIREMENT_STATUS_OPTIONS];
 
 function RequirementsTab({
   api,
   designId,
+  designSource,
   onChange,
 }: {
   api: DesignApi;
   designId: string;
+  designSource: DesignSource;
   onChange: () => void;
 }) {
   const toast = useToast();
@@ -523,18 +544,29 @@ function RequirementsTab({
   const [adding, setAdding] = useState(false);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
+  const [addPriority, setAddPriority] = useState<RequirementPriority>('medium');
+  const [addSource, setAddSource] = useState<DesignSource>(designSource);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  // search + filters
+  const [search, setSearch] = useState('');
+  const [fPriority, setFPriority] = useState('all');
+  const [fSource, setFSource] = useState('all');
+  const [fStatus, setFStatus] = useState('all');
   // inline edit state
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editBody, setEditBody] = useState('');
   const [editStatus, setEditStatus] = useState<RequirementStatus>('draft');
+  const [editPriority, setEditPriority] = useState<RequirementPriority>('medium');
+  const [editSource, setEditSource] = useState<DesignSource>('manual');
 
   function startEdit(req: Requirement) {
     setEditingId(req.id);
     setEditTitle(req.title);
     setEditBody(req.description ?? '');
     setEditStatus(req.status);
+    setEditPriority(req.priority);
+    setEditSource(req.source);
   }
 
   const load = useCallback(() => {
@@ -564,6 +596,8 @@ function RequirementsTab({
     setAdding(false);
     setTitle('');
     setBody('');
+    setAddPriority('medium');
+    setAddSource(designSource);
   }
 
   function toggle(id: string) {
@@ -574,6 +608,18 @@ function RequirementsTab({
       return next;
     });
   }
+
+  const visible = items.filter((req) => {
+    if (fPriority !== 'all' && req.priority !== fPriority) return false;
+    if (fSource !== 'all' && req.source !== fSource) return false;
+    if (fStatus !== 'all' && req.status !== fStatus) return false;
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      const hay = `${req.title} ${req.description ?? ''}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
 
   return (
     <SectionCard
@@ -593,7 +639,12 @@ function RequirementsTab({
           onSubmit={(event) => {
             event.preventDefault();
             if (!title.trim()) return;
-            const payload = { title: title.trim(), description: body.trim() || undefined };
+            const payload = {
+              title: title.trim(),
+              description: body.trim() || undefined,
+              priority: addPriority,
+              source: addSource,
+            };
             resetForm();
             void guard(() => api.createRequirement(designId, payload).then(() => undefined));
           }}
@@ -606,24 +657,71 @@ function RequirementsTab({
             className={inputClasses}
           />
           <DescriptionEditor value={body} onChange={setBody} />
-          <div className="flex justify-end gap-2">
-            <button type="button" onClick={resetForm} className={ghostButton}>
-              Cancel
-            </button>
-            <button type="submit" className={primaryButton}>
-              Add Requirement
-            </button>
+          <div className="flex flex-wrap items-end gap-3">
+            <label className="flex flex-col gap-1.5 text-sm font-semibold text-ink">
+              Priority
+              <span className="w-32">
+                <Select
+                  options={REQUIREMENT_PRIORITY_OPTIONS}
+                  value={addPriority}
+                  onChange={(value) => setAddPriority(value as RequirementPriority)}
+                />
+              </span>
+            </label>
+            <label className="flex flex-col gap-1.5 text-sm font-semibold text-ink">
+              Source
+              <span className="w-32">
+                <Select
+                  options={REQUIREMENT_SOURCE_OPTIONS}
+                  value={addSource}
+                  onChange={(value) => setAddSource(value as DesignSource)}
+                />
+              </span>
+            </label>
+            <div className="ml-auto flex gap-2">
+              <button type="button" onClick={resetForm} className={ghostButton}>
+                Cancel
+              </button>
+              <button type="submit" className={primaryButton}>
+                Add Requirement
+              </button>
+            </div>
           </div>
         </form>
+      )}
+
+      {items.length > 0 && (
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <span className="flex min-w-48 flex-1 items-center gap-2 rounded-[10px] border border-line bg-white px-3 py-2">
+            <Search aria-hidden className="h-4 w-4 text-muted" />
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search…"
+              className="min-w-0 flex-1 bg-transparent text-sm outline-none"
+            />
+          </span>
+          <div className="w-36">
+            <Select options={PRIORITY_FILTER} value={fPriority} onChange={setFPriority} />
+          </div>
+          <div className="w-36">
+            <Select options={SOURCE_FILTER} value={fSource} onChange={setFSource} />
+          </div>
+          <div className="w-36">
+            <Select options={STATUS_FILTER} value={fStatus} onChange={setFStatus} />
+          </div>
+        </div>
       )}
 
       {loading ? (
         <p className="text-sm text-muted">Loading…</p>
       ) : items.length === 0 ? (
         <p className="text-sm text-muted">No requirements yet — add the first one.</p>
+      ) : visible.length === 0 ? (
+        <p className="text-sm text-muted">No requirements match these filters.</p>
       ) : (
         <ul className="space-y-3">
-          {items.map((req, index) => {
+          {visible.map((req, index) => {
             const open = expanded.has(req.id);
             const hasBody = Boolean(req.description?.trim());
 
@@ -642,6 +740,8 @@ function RequirementsTab({
                         title: editTitle.trim(),
                         description: editBody.trim() || null,
                         status: editStatus,
+                        priority: editPriority,
+                        source: editSource,
                       };
                       setEditingId(null);
                       void guard(() =>
@@ -656,10 +756,30 @@ function RequirementsTab({
                       className={inputClasses}
                     />
                     <DescriptionEditor value={editBody} onChange={setEditBody} />
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <label className="flex items-center gap-2 text-sm font-semibold text-ink">
+                    <div className="flex flex-wrap items-end gap-3">
+                      <label className="flex flex-col gap-1.5 text-sm font-semibold text-ink">
+                        Priority
+                        <span className="w-32">
+                          <Select
+                            options={REQUIREMENT_PRIORITY_OPTIONS}
+                            value={editPriority}
+                            onChange={(value) => setEditPriority(value as RequirementPriority)}
+                          />
+                        </span>
+                      </label>
+                      <label className="flex flex-col gap-1.5 text-sm font-semibold text-ink">
+                        Source
+                        <span className="w-32">
+                          <Select
+                            options={REQUIREMENT_SOURCE_OPTIONS}
+                            value={editSource}
+                            onChange={(value) => setEditSource(value as DesignSource)}
+                          />
+                        </span>
+                      </label>
+                      <label className="flex flex-col gap-1.5 text-sm font-semibold text-ink">
                         Status
-                        <span className="w-36">
+                        <span className="w-32">
                           <Select
                             options={REQUIREMENT_STATUS_OPTIONS}
                             value={editStatus}
@@ -667,7 +787,7 @@ function RequirementsTab({
                           />
                         </span>
                       </label>
-                      <div className="flex gap-2">
+                      <div className="ml-auto flex gap-2">
                         <button
                           type="button"
                           onClick={() => setEditingId(null)}
@@ -712,6 +832,8 @@ function RequirementsTab({
                       {req.title}
                     </span>
                   </button>
+                  <PriorityBadge priority={req.priority} />
+                  <SourceChip source={req.source} />
                   <RequirementStatusBadge status={req.status} />
                   <button
                     type="button"
@@ -1055,6 +1177,17 @@ function ApprovalTab({
 
 /* ----------------------------------------------------------------- artifacts */
 
+type SuiteNode = { suite: TestSuite; cases: TestCase[] };
+type PlanNode = { plan: TestPlan; suites: SuiteNode[] };
+type ArtifactSub = 'plan' | 'suites' | 'cases';
+
+type Guard = (fn: () => Promise<unknown>) => Promise<void>;
+type AskDelete = (
+  message: string,
+  run: () => Promise<unknown>,
+  opts?: { title?: string; confirmLabel?: string },
+) => void;
+
 function ArtifactsTab({
   api,
   design,
@@ -1067,16 +1200,65 @@ function ArtifactsTab({
   onChange: () => void;
 }) {
   const toast = useToast();
-  const [plans, setPlans] = useState<TestPlan[]>([]);
+  const [tree, setTree] = useState<PlanNode[]>([]);
   const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
+  const [sub, setSub] = useState<ArtifactSub>('plan');
   const [generating, setGenerating] = useState(false);
+  const [pending, setPending] = useState<{
+    title: string;
+    confirmLabel: string;
+    message: string;
+    run: () => Promise<unknown>;
+  } | null>(null);
   const approved = design.status === 'approved';
 
-  async function generate() {
-    if (plans.length > 0 && !window.confirm('Generate a new test plan from the current requirements? Existing plans are kept.')) {
-      return;
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { testPlans } = await api.listPlans(designId);
+      const nodes = await Promise.all(
+        testPlans.map(async (plan) => {
+          const { testSuites } = await api.listSuites(plan.id);
+          const suites = await Promise.all(
+            testSuites.map(async (suite) => ({
+              suite,
+              cases: (await api.listCases(suite.id)).testCases,
+            })),
+          );
+          return { plan, suites };
+        }),
+      );
+      setTree(nodes);
+    } catch (cause) {
+      toast.push(cause instanceof Error ? cause.message : 'Failed to load artifacts', 'error');
+    } finally {
+      setLoading(false);
     }
+  }, [api, designId, toast]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const guard: Guard = async (fn) => {
+    try {
+      await fn();
+      await load();
+      onChange();
+    } catch (cause) {
+      toast.push(cause instanceof Error ? cause.message : 'Something went wrong', 'error');
+    }
+  };
+
+  const askDelete: AskDelete = (message, run, opts) =>
+    setPending({
+      title: opts?.title ?? 'Delete',
+      confirmLabel: opts?.confirmLabel ?? 'Delete',
+      message,
+      run,
+    });
+
+  async function generate() {
     setGenerating(true);
     try {
       const result = await api.generateArtifacts(designId);
@@ -1084,7 +1266,7 @@ function ArtifactsTab({
         `Generated a plan with ${result.suiteCount} suites and ${result.caseCount} cases`,
         'success',
       );
-      load();
+      await load();
       onChange();
     } catch (cause) {
       toast.push(cause instanceof Error ? cause.message : 'Generation failed', 'error');
@@ -1093,49 +1275,35 @@ function ArtifactsTab({
     }
   }
 
-  const load = useCallback(() => {
-    setLoading(true);
-    api
-      .listPlans(designId)
-      .then((data) => setPlans(data.testPlans))
-      .catch((cause: unknown) =>
-        toast.push(cause instanceof Error ? cause.message : 'Failed to load plans', 'error'),
-      )
-      .finally(() => setLoading(false));
-  }, [api, designId, toast]);
-
-  useEffect(load, [load]);
-
-  async function guard(fn: () => Promise<unknown>) {
-    try {
-      await fn();
-      load();
-      onChange();
-    } catch (cause) {
-      toast.push(cause instanceof Error ? cause.message : 'Something went wrong', 'error');
-    }
-  }
+  const suiteTotal = tree.reduce((n, p) => n + p.suites.length, 0);
+  const caseTotal = tree.reduce(
+    (n, p) => n + p.suites.reduce((m, s) => m + s.cases.length, 0),
+    0,
+  );
+  const subs: { key: ArtifactSub; label: string; count: number }[] = [
+    { key: 'plan', label: 'Test Plan', count: tree.length },
+    { key: 'suites', label: 'Test Suites', count: suiteTotal },
+    { key: 'cases', label: 'Test Cases', count: caseTotal },
+  ];
 
   return (
     <SectionCard
       title={<h3 className="text-base font-bold text-ink">Test Artifacts</h3>}
       action={
-        <div className="flex items-center gap-2">
-          <button type="button" onClick={() => setCreating(true)} className={ghostButton}>
-            <Plus aria-hidden className="h-4 w-4" />
-            New Test Plan
-          </button>
-          <button
-            type="button"
-            onClick={generate}
-            disabled={!approved || generating}
-            title={approved ? 'Generate a plan, suites and cases from the requirements' : 'Approve the design first'}
-            className={primaryButton}
-          >
-            <Sparkles aria-hidden className="h-4 w-4" />
-            {generating ? 'Generating…' : 'Generate from requirements'}
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => void generate()}
+          disabled={!approved || generating}
+          title={
+            approved
+              ? 'Generate a plan, suites and cases from the requirements'
+              : 'Approve the design first'
+          }
+          className={primaryButton}
+        >
+          <Sparkles aria-hidden className="h-4 w-4" />
+          {generating ? 'Generating…' : 'Generate from requirements'}
+        </button>
       }
     >
       {!approved && (
@@ -1144,172 +1312,231 @@ function ArtifactsTab({
         </p>
       )}
 
-      {creating && (
-        <form
-          className="mb-4 flex gap-2"
-          onSubmit={(event) => {
-            event.preventDefault();
-            const title = String(new FormData(event.currentTarget).get('title') ?? '').trim();
-            if (!title) return;
-            setCreating(false);
-            void guard(() => api.createPlan(designId, { title }));
-          }}
-        >
-          <input name="title" required placeholder="Test plan title" className={inputClasses} />
-          <button type="submit" className={primaryButton}>
-            Create
-          </button>
-        </form>
-      )}
+      <div className="mb-5 flex gap-2 rounded-card border border-line bg-white p-1.5">
+        {subs.map((item) => {
+          const active = sub === item.key;
+          return (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => setSub(item.key)}
+              className={`flex-1 rounded-[10px] px-3 py-2 text-sm font-semibold transition-colors ${
+                active ? 'bg-accent text-white' : 'text-muted hover:bg-primary-tint/50 hover:text-ink'
+              }`}
+            >
+              {item.label}
+              <span
+                className={`ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                  active ? 'bg-white/25 text-white' : 'bg-cream text-muted'
+                }`}
+              >
+                {item.count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
 
       {loading ? (
         <p className="text-sm text-muted">Loading…</p>
-      ) : plans.length === 0 ? (
-        <p className="text-sm text-muted">
-          No test plans yet — create one to start building suites and cases.
-        </p>
+      ) : sub === 'plan' ? (
+        <PlanSection
+          api={api}
+          designId={designId}
+          nodes={tree}
+          guard={guard}
+          askDelete={askDelete}
+        />
+      ) : sub === 'suites' ? (
+        <SuitesSection api={api} nodes={tree} guard={guard} askDelete={askDelete} />
       ) : (
-        <div className="space-y-3">
-          {plans.map((plan) => (
-            <PlanRow key={plan.id} api={api} plan={plan} onChange={() => guard(async () => {})} />
-          ))}
-        </div>
+        <CasesSection api={api} nodes={tree} guard={guard} askDelete={askDelete} />
+      )}
+
+      {pending && (
+        <ConfirmModal
+          title={pending.title}
+          confirmLabel={pending.confirmLabel}
+          message={pending.message}
+          onConfirm={() => {
+            const p = pending;
+            setPending(null);
+            void guard(p.run);
+          }}
+          onClose={() => setPending(null)}
+        />
       )}
     </SectionCard>
   );
 }
 
-function PlanRow({ api, plan, onChange }: { api: DesignApi; plan: TestPlan; onChange: () => void }) {
-  const toast = useToast();
-  const [open, setOpen] = useState(false);
-  const [suites, setSuites] = useState<TestSuite[]>([]);
-  const [status, setStatus] = useState(plan.status);
-  const [adding, setAdding] = useState(false);
-  const [title, setTitle] = useState(plan.title);
+/* ------------------------------------------------------------- Test Plan tab */
+
+function PlanSection({
+  api,
+  designId,
+  nodes,
+  guard,
+  askDelete,
+}: {
+  api: DesignApi;
+  designId: string;
+  nodes: PlanNode[];
+  guard: Guard;
+  askDelete: AskDelete;
+}) {
+  const [creating, setCreating] = useState(false);
+  const [title, setTitle] = useState('');
+
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        {!creating && (
+          <button type="button" onClick={() => setCreating(true)} className={ghostButton}>
+            <Plus aria-hidden className="h-4 w-4" />
+            New Test Plan
+          </button>
+        )}
+      </div>
+      {creating && (
+        <form
+          className="flex gap-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!title.trim()) return;
+            const value = title.trim();
+            setTitle('');
+            setCreating(false);
+            void guard(() => api.createPlan(designId, { title: value }));
+          }}
+        >
+          <input
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            required
+            placeholder="Test plan title"
+            className={inputClasses}
+          />
+          <button type="submit" className={primaryButton}>
+            Create
+          </button>
+          <button type="button" onClick={() => setCreating(false)} className={ghostButton}>
+            Cancel
+          </button>
+        </form>
+      )}
+
+      {nodes.length === 0 ? (
+        <p className="text-sm text-muted">
+          No test plans yet — generate from requirements or create one.
+        </p>
+      ) : (
+        nodes.map((node) => (
+          <PlanCard key={node.plan.id} api={api} node={node} guard={guard} askDelete={askDelete} />
+        ))
+      )}
+    </div>
+  );
+}
+
+function PlanCard({
+  api,
+  node,
+  guard,
+  askDelete,
+}: {
+  api: DesignApi;
+  node: PlanNode;
+  guard: Guard;
+  askDelete: AskDelete;
+}) {
+  const { plan } = node;
   const [renaming, setRenaming] = useState(false);
-  const [confirmArchive, setConfirmArchive] = useState(false);
+  const [titleDraft, setTitleDraft] = useState(plan.title);
+  const [editingDetails, setEditingDetails] = useState(false);
+  const [objDraft, setObjDraft] = useState('');
+  const [scopeDraft, setScopeDraft] = useState('');
+  const [stratDraft, setStratDraft] = useState('');
 
-  const load = useCallback(() => {
-    api
-      .listSuites(plan.id)
-      .then((data) => setSuites(data.testSuites))
-      .catch(() => undefined);
-  }, [api, plan.id]);
+  const suiteN = node.suites.length;
+  const caseN = node.suites.reduce((m, s) => m + s.cases.length, 0);
 
-  useEffect(() => {
-    if (open) load();
-  }, [open, load]);
-
-  async function act(fn: () => Promise<unknown>) {
-    try {
-      await fn();
-      load();
-      onChange();
-    } catch (cause) {
-      toast.push(cause instanceof Error ? cause.message : 'Something went wrong', 'error');
-    }
+  function startRename() {
+    setTitleDraft(plan.title);
+    setRenaming(true);
   }
-
-  async function saveRename() {
-    const next = title.trim();
-    if (!next) {
-      setTitle(plan.title);
-      setRenaming(false);
-      return;
-    }
-    setRenaming(false);
-    await act(() => api.updatePlan(plan.id, { title: next }).then((r) => setTitle(r.testPlan.title)));
-  }
-
-  async function archive() {
-    setConfirmArchive(false);
-    await act(() => api.archivePlan(plan.id));
+  function startEditDetails() {
+    setObjDraft(plan.objective ?? '');
+    setScopeDraft(plan.scope.join(', '));
+    setStratDraft(plan.strategy ?? '');
+    setEditingDetails(true);
   }
 
   const iconButton = 'text-muted transition-colors hover:text-primary-deep';
 
   return (
-    <div className="rounded-card border border-line bg-white">
-      <div className="flex flex-wrap items-center gap-3 px-4 py-3">
+    <div className="rounded-card border border-line bg-white p-4">
+      <div className="flex flex-wrap items-center gap-3">
         {renaming ? (
           <form
             className="flex flex-1 items-center gap-2"
             onSubmit={(event) => {
               event.preventDefault();
-              void saveRename();
+              const next = titleDraft.trim();
+              setRenaming(false);
+              if (next && next !== plan.title) void guard(() => api.updatePlan(plan.id, { title: next }));
             }}
           >
             <input
               autoFocus
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
+              value={titleDraft}
+              onChange={(event) => setTitleDraft(event.target.value)}
               className={inputClasses}
             />
             <button type="submit" className={primaryButton}>
               Save
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                setTitle(plan.title);
-                setRenaming(false);
-              }}
-              className={ghostButton}
-            >
+            <button type="button" onClick={() => setRenaming(false)} className={ghostButton}>
               Cancel
             </button>
           </form>
         ) : (
           <>
-            <button
-              type="button"
-              onClick={() => setOpen(!open)}
-              className="flex items-center gap-2 text-left text-sm font-bold text-ink hover:text-primary-deep"
-            >
-              <ChevronRight
-                aria-hidden
-                className={`h-4 w-4 text-muted transition-transform ${open ? 'rotate-90' : ''}`}
-              />
-              {title}
-            </button>
-            <StatusBadge status={status} />
+            <h4 className="text-sm font-bold text-ink">{plan.title}</h4>
+            <StatusBadge status={plan.status} />
+            <span className="text-xs text-muted">v{plan.version}</span>
             <span className="ml-auto flex items-center gap-2">
-              {status === 'draft' && (
+              {plan.status === 'draft' && (
                 <button
                   type="button"
-                  onClick={() =>
-                    void act(() => api.submitPlan(plan.id).then((r) => setStatus(r.testPlan.status)))
-                  }
+                  onClick={() => void guard(() => api.submitPlan(plan.id))}
                   className={ghostButton}
                 >
                   Submit
                 </button>
               )}
-              {status === 'in_review' && (
+              {plan.status === 'in_review' && (
                 <button
                   type="button"
-                  onClick={() =>
-                    void act(() =>
-                      api.decidePlan(plan.id, 'approved').then((r) => setStatus(r.testPlan.status)),
-                    )
-                  }
+                  onClick={() => void guard(() => api.decidePlan(plan.id, 'approved'))}
                   className={ghostButton}
                 >
                   Approve
                 </button>
               )}
-              <button
-                type="button"
-                aria-label="Rename plan"
-                onClick={() => setRenaming(true)}
-                className={iconButton}
-              >
+              <button type="button" aria-label="Rename plan" onClick={startRename} className={iconButton}>
                 <Pencil aria-hidden className="h-4 w-4" />
               </button>
               <button
                 type="button"
                 aria-label="Archive plan"
-                onClick={() => setConfirmArchive(true)}
+                onClick={() =>
+                  askDelete(
+                    `Archive test plan "${plan.title}"? Its suites and cases are preserved.`,
+                    () => api.archivePlan(plan.id),
+                    { title: 'Archive test plan', confirmLabel: 'Archive' },
+                  )
+                }
                 className="text-muted transition-colors hover:text-fail"
               >
                 <Trash2 aria-hidden className="h-4 w-4" />
@@ -1319,159 +1546,431 @@ function PlanRow({ api, plan, onChange }: { api: DesignApi; plan: TestPlan; onCh
         )}
       </div>
 
-      {confirmArchive && (
-        <ConfirmModal
-          title="Archive test plan"
-          message={`Archive test plan "${title}"? Its suites and cases are preserved.`}
-          confirmLabel="Archive"
-          onConfirm={archive}
-          onClose={() => setConfirmArchive(false)}
-        />
-      )}
-
-      {open && (
-        <div className="border-t border-line p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-wide text-muted">Suites</p>
+      <div className="mt-3 rounded-[10px] border border-line bg-cream/40 p-3">
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-xs font-bold uppercase tracking-wide text-muted">Plan details</p>
+          {!editingDetails && (
             <button
               type="button"
-              onClick={() => setAdding(true)}
+              onClick={startEditDetails}
               className="text-sm font-semibold text-accent hover:text-accent-deep"
             >
-              + Suite
+              Edit details
             </button>
-          </div>
-          {adding && (
-            <form
-              className="mb-3 flex gap-2"
-              onSubmit={(event) => {
-                event.preventDefault();
-                const title = String(new FormData(event.currentTarget).get('title') ?? '').trim();
-                if (!title) return;
-                setAdding(false);
-                void act(() => api.createSuite(plan.id, { title }));
-              }}
-            >
-              <input name="title" required placeholder="Suite title" className={inputClasses} />
-              <button type="submit" className={primaryButton}>
-                Add
+          )}
+        </div>
+        {editingDetails ? (
+          <div className="flex flex-col gap-2.5">
+            <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wide text-muted">
+              Objective
+              <textarea
+                rows={2}
+                value={objDraft}
+                onChange={(event) => setObjDraft(event.target.value)}
+                className={`${inputClasses} resize-y font-normal normal-case`}
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wide text-muted">
+              Scope (comma-separated)
+              <input
+                value={scopeDraft}
+                onChange={(event) => setScopeDraft(event.target.value)}
+                placeholder="Login, Cart, Checkout"
+                className={`${inputClasses} font-normal normal-case`}
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wide text-muted">
+              Strategy
+              <input
+                value={stratDraft}
+                onChange={(event) => setStratDraft(event.target.value)}
+                placeholder="Functional + Negative + Boundary"
+                className={`${inputClasses} font-normal normal-case`}
+              />
+            </label>
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setEditingDetails(false)} className={ghostButton}>
+                Cancel
               </button>
-            </form>
-          )}
-          {suites.length === 0 ? (
-            <p className="text-sm text-muted">No suites yet.</p>
-          ) : (
-            <div className="space-y-2">
-              {suites.map((suite) => (
-                <SuiteRow
-                  key={suite.id}
-                  api={api}
-                  suite={suite}
-                  onChange={() => {
-                    load();
-                    onChange();
-                  }}
-                />
-              ))}
+              <button
+                type="button"
+                onClick={() => {
+                  const scope = scopeDraft
+                    .split(',')
+                    .map((s) => s.trim())
+                    .filter(Boolean);
+                  setEditingDetails(false);
+                  void guard(() =>
+                    api.updatePlan(plan.id, {
+                      objective: objDraft.trim() || null,
+                      scope,
+                      strategy: stratDraft.trim() || null,
+                    }),
+                  );
+                }}
+                className={primaryButton}
+              >
+                Save details
+              </button>
             </div>
-          )}
+          </div>
+        ) : (
+          <dl className="space-y-2 text-sm">
+            <div>
+              <dt className="text-xs font-bold uppercase tracking-wide text-muted">Objective</dt>
+              <dd className="text-ink">{plan.objective || '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-bold uppercase tracking-wide text-muted">Scope</dt>
+              <dd>
+                {plan.scope.length ? (
+                  <span className="flex flex-wrap gap-1.5">
+                    {plan.scope.map((item) => (
+                      <span
+                        key={item}
+                        className="rounded-full border border-line bg-white px-2.5 py-0.5 text-xs font-semibold text-ink"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </span>
+                ) : (
+                  <span className="text-ink">—</span>
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs font-bold uppercase tracking-wide text-muted">Strategy</dt>
+              <dd className="text-ink">{plan.strategy || '—'}</dd>
+            </div>
+          </dl>
+        )}
+      </div>
+
+      <p className="mt-3 text-xs text-muted">
+        {suiteN} suite{suiteN === 1 ? '' : 's'} · {caseN} case{caseN === 1 ? '' : 's'}
+      </p>
+    </div>
+  );
+}
+
+/* ----------------------------------------------------------- Test Suites tab */
+
+function SuitesSection({
+  api,
+  nodes,
+  guard,
+  askDelete,
+}: {
+  api: DesignApi;
+  nodes: PlanNode[];
+  guard: Guard;
+  askDelete: AskDelete;
+}) {
+  const [adding, setAdding] = useState(false);
+  const [planId, setPlanId] = useState('');
+  const [title, setTitle] = useState('');
+
+  const planOptions = nodes.map((n) => ({ value: n.plan.id, label: n.plan.title }));
+  const suites = nodes.flatMap((n) =>
+    n.suites.map((s) => ({ suite: s.suite, caseCount: s.cases.length, planTitle: n.plan.title })),
+  );
+
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        {!adding && nodes.length > 0 && (
+          <button
+            type="button"
+            onClick={() => {
+              setPlanId(nodes[0]!.plan.id);
+              setTitle('');
+              setAdding(true);
+            }}
+            className={ghostButton}
+          >
+            <Plus aria-hidden className="h-4 w-4" />
+            Add Suite
+          </button>
+        )}
+      </div>
+      {adding && (
+        <form
+          className="flex flex-wrap items-end gap-2 rounded-card border border-line bg-cream/50 p-3"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!title.trim() || !planId) return;
+            const value = title.trim();
+            setAdding(false);
+            setTitle('');
+            void guard(() => api.createSuite(planId, { title: value }));
+          }}
+        >
+          <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wide text-muted">
+            Plan
+            <span className="w-48">
+              <Select options={planOptions} value={planId} onChange={setPlanId} />
+            </span>
+          </label>
+          <input
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            required
+            placeholder="Suite title"
+            className={inputClasses}
+          />
+          <button type="submit" className={primaryButton}>
+            Add
+          </button>
+          <button type="button" onClick={() => setAdding(false)} className={ghostButton}>
+            Cancel
+          </button>
+        </form>
+      )}
+
+      {nodes.length === 0 ? (
+        <p className="text-sm text-muted">Create a test plan first.</p>
+      ) : suites.length === 0 ? (
+        <p className="text-sm text-muted">No suites yet.</p>
+      ) : (
+        <div className="space-y-2">
+          {suites.map(({ suite, caseCount, planTitle }) => (
+            <SuiteItem
+              key={suite.id}
+              api={api}
+              suite={suite}
+              planTitle={planTitle}
+              caseCount={caseCount}
+              guard={guard}
+              askDelete={askDelete}
+            />
+          ))}
         </div>
       )}
     </div>
   );
 }
 
-function SuiteRow({
+function SuiteItem({
   api,
   suite,
-  onChange,
+  planTitle,
+  caseCount,
+  guard,
+  askDelete,
 }: {
   api: DesignApi;
   suite: TestSuite;
-  onChange: () => void;
+  planTitle: string;
+  caseCount: number;
+  guard: Guard;
+  askDelete: AskDelete;
 }) {
-  const toast = useToast();
-  const [open, setOpen] = useState(false);
-  const [cases, setCases] = useState<TestCase[]>([]);
-  const [adding, setAdding] = useState(false);
-  const [title, setTitle] = useState(suite.title);
   const [renaming, setRenaming] = useState(false);
-  const [editingCaseId, setEditingCaseId] = useState<string | null>(null);
-  const [caseTitle, setCaseTitle] = useState('');
-  const [confirmDeleteSuite, setConfirmDeleteSuite] = useState(false);
-  const [deletingCase, setDeletingCase] = useState<TestCase | null>(null);
-
-  const load = useCallback(() => {
-    api
-      .listCases(suite.id)
-      .then((data) => setCases(data.testCases))
-      .catch(() => undefined);
-  }, [api, suite.id]);
-
-  useEffect(() => {
-    if (open) load();
-  }, [open, load]);
-
-  async function run(fn: () => Promise<unknown>, reloadCases = true) {
-    try {
-      await fn();
-      if (reloadCases) load();
-    } catch (cause) {
-      toast.push(cause instanceof Error ? cause.message : 'Something went wrong', 'error');
-    }
-  }
-
-  async function saveRename() {
-    const next = title.trim();
-    if (!next) {
-      setTitle(suite.title);
-      setRenaming(false);
-      return;
-    }
-    setRenaming(false);
-    await run(
-      () => api.updateSuite(suite.id, { title: next }).then((r) => setTitle(r.testSuite.title)),
-      false,
-    );
-    onChange();
-  }
-
-  async function removeSuite() {
-    setConfirmDeleteSuite(false);
-    await run(() => api.deleteSuite(suite.id), false);
-    onChange();
-  }
-
-  const iconButton = 'text-muted transition-colors hover:text-primary-deep';
+  const [draft, setDraft] = useState(suite.title);
 
   return (
-    <div className="rounded-[10px] border border-line bg-cream/40 p-3">
-      <div className="flex items-center gap-2">
+    <div className="flex items-center gap-3 rounded-[10px] border border-line bg-white px-4 py-2.5">
+      <Layers aria-hidden className="h-4 w-4 shrink-0 text-primary" />
+      {renaming ? (
+        <form
+          className="flex flex-1 items-center gap-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const next = draft.trim();
+            setRenaming(false);
+            if (next && next !== suite.title) void guard(() => api.updateSuite(suite.id, { title: next }));
+          }}
+        >
+          <input
+            autoFocus
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            className={inputClasses}
+          />
+          <button type="submit" className={primaryButton}>
+            Save
+          </button>
+          <button type="button" onClick={() => setRenaming(false)} className={ghostButton}>
+            Cancel
+          </button>
+        </form>
+      ) : (
+        <>
+          <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">
+            {suite.title}
+          </span>
+          <span className="hidden text-xs text-muted sm:inline">in {planTitle}</span>
+          <span className="shrink-0 text-xs font-semibold text-muted">{caseCount} cases</span>
+          <button
+            type="button"
+            aria-label="Rename suite"
+            onClick={() => {
+              setDraft(suite.title);
+              setRenaming(true);
+            }}
+            className="text-muted transition-colors hover:text-primary-deep"
+          >
+            <Pencil aria-hidden className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            aria-label="Delete suite"
+            onClick={() =>
+              askDelete(`Delete suite "${suite.title}" and all its cases? This cannot be undone.`, () =>
+                api.deleteSuite(suite.id),
+              )
+            }
+            className="text-muted transition-colors hover:text-fail"
+          >
+            <Trash2 aria-hidden className="h-3.5 w-3.5" />
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------ Test Cases tab */
+
+function CasesSection({
+  api,
+  nodes,
+  guard,
+  askDelete,
+}: {
+  api: DesignApi;
+  nodes: PlanNode[];
+  guard: Guard;
+  askDelete: AskDelete;
+}) {
+  const [adding, setAdding] = useState(false);
+  const [suiteId, setSuiteId] = useState('');
+  const [title, setTitle] = useState('');
+
+  const suiteOptions = nodes.flatMap((n) =>
+    n.suites.map((s) => ({ value: s.suite.id, label: `${n.plan.title} / ${s.suite.title}` })),
+  );
+  const cases = nodes.flatMap((n) =>
+    n.suites.flatMap((s) => s.cases.map((c) => ({ testCase: c, suiteTitle: s.suite.title }))),
+  );
+
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        {!adding && suiteOptions.length > 0 && (
+          <button
+            type="button"
+            onClick={() => {
+              setSuiteId(suiteOptions[0]!.value);
+              setTitle('');
+              setAdding(true);
+            }}
+            className={ghostButton}
+          >
+            <Plus aria-hidden className="h-4 w-4" />
+            Add Case
+          </button>
+        )}
+      </div>
+      {adding && (
+        <form
+          className="flex flex-wrap items-end gap-2 rounded-card border border-line bg-cream/50 p-3"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!title.trim() || !suiteId) return;
+            const value = title.trim();
+            setAdding(false);
+            setTitle('');
+            void guard(() => api.createCase(suiteId, { title: value }));
+          }}
+        >
+          <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wide text-muted">
+            Suite
+            <span className="w-60">
+              <Select options={suiteOptions} value={suiteId} onChange={setSuiteId} />
+            </span>
+          </label>
+          <input
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            required
+            placeholder="Case title"
+            className={inputClasses}
+          />
+          <button type="submit" className={primaryButton}>
+            Add
+          </button>
+          <button type="button" onClick={() => setAdding(false)} className={ghostButton}>
+            Cancel
+          </button>
+        </form>
+      )}
+
+      {suiteOptions.length === 0 ? (
+        <p className="text-sm text-muted">Create a suite first.</p>
+      ) : cases.length === 0 ? (
+        <p className="text-sm text-muted">No cases yet.</p>
+      ) : (
+        <div className="space-y-2">
+          {cases.map(({ testCase, suiteTitle }) => (
+            <CaseItem
+              key={testCase.id}
+              api={api}
+              testCase={testCase}
+              suiteTitle={suiteTitle}
+              guard={guard}
+              askDelete={askDelete}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CaseItem({
+  api,
+  testCase,
+  suiteTitle,
+  guard,
+  askDelete,
+}: {
+  api: DesignApi;
+  testCase: TestCase;
+  suiteTitle: string;
+  guard: Guard;
+  askDelete: AskDelete;
+}) {
+  const [open, setOpen] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const [draft, setDraft] = useState(testCase.title);
+  const hasSteps = testCase.steps.length > 0;
+
+  return (
+    <div className="rounded-[10px] border border-line bg-white">
+      <div className="flex items-center gap-3 px-4 py-2.5">
         {renaming ? (
           <form
             className="flex flex-1 items-center gap-2"
             onSubmit={(event) => {
               event.preventDefault();
-              void saveRename();
+              const next = draft.trim();
+              setRenaming(false);
+              if (next && next !== testCase.title)
+                void guard(() => api.updateCase(testCase.id, { title: next }));
             }}
           >
             <input
               autoFocus
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
               className={inputClasses}
             />
             <button type="submit" className={primaryButton}>
               Save
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                setTitle(suite.title);
-                setRenaming(false);
-              }}
-              className={ghostButton}
-            >
+            <button type="button" onClick={() => setRenaming(false)} className={ghostButton}>
               Cancel
             </button>
           </form>
@@ -1479,40 +1978,44 @@ function SuiteRow({
           <>
             <button
               type="button"
-              onClick={() => setOpen(!open)}
-              className="flex min-w-0 flex-1 items-center gap-2 text-sm font-semibold text-ink hover:text-primary-deep"
+              onClick={() => hasSteps && setOpen(!open)}
+              className={`flex min-w-0 flex-1 items-center gap-2 text-left ${
+                hasSteps ? 'cursor-pointer' : 'cursor-default'
+              }`}
             >
-              <ChevronRight
-                aria-hidden
-                className={`h-3.5 w-3.5 shrink-0 text-muted transition-transform ${
-                  open ? 'rotate-90' : ''
-                }`}
-              />
-              <Layers aria-hidden className="h-3.5 w-3.5 shrink-0 text-primary" />
-              <span className="truncate">{title}</span>
+              {hasSteps ? (
+                <ChevronRight
+                  aria-hidden
+                  className={`h-3.5 w-3.5 shrink-0 text-muted transition-transform ${
+                    open ? 'rotate-90' : ''
+                  }`}
+                />
+              ) : (
+                <span className="w-3.5 shrink-0" />
+              )}
+              <span className="min-w-0 flex-1 truncate text-sm text-ink">{testCase.title}</span>
             </button>
+            <span className="hidden text-xs text-muted sm:inline">in {suiteTitle}</span>
+            <PriorityBadge priority={testCase.priority} />
             <button
               type="button"
+              aria-label="Rename case"
               onClick={() => {
-                setOpen(true);
-                setAdding(true);
+                setDraft(testCase.title);
+                setRenaming(true);
               }}
-              className="text-xs font-semibold text-accent hover:text-accent-deep"
-            >
-              + Case
-            </button>
-            <button
-              type="button"
-              aria-label="Rename suite"
-              onClick={() => setRenaming(true)}
-              className={iconButton}
+              className="text-muted transition-colors hover:text-primary-deep"
             >
               <Pencil aria-hidden className="h-3.5 w-3.5" />
             </button>
             <button
               type="button"
-              aria-label="Delete suite"
-              onClick={() => setConfirmDeleteSuite(true)}
+              aria-label="Delete case"
+              onClick={() =>
+                askDelete(`Delete case "${testCase.title}"? This cannot be undone.`, () =>
+                  api.deleteCase(testCase.id),
+                )
+              }
               className="text-muted transition-colors hover:text-fail"
             >
               <Trash2 aria-hidden className="h-3.5 w-3.5" />
@@ -1520,112 +2023,24 @@ function SuiteRow({
           </>
         )}
       </div>
-
-      {open && (
-        <div className="mt-3 space-y-2 pl-5">
-          {adding && (
-            <form
-              className="flex gap-2"
-              onSubmit={(event) => {
-                event.preventDefault();
-                const value = String(new FormData(event.currentTarget).get('title') ?? '').trim();
-                if (!value) return;
-                event.currentTarget.reset();
-                setAdding(false);
-                void run(() => api.createCase(suite.id, { title: value }).then(onChange));
-              }}
-            >
-              <input name="title" required placeholder="Case title" className={inputClasses} />
-              <button type="submit" className={primaryButton}>
-                Add
-              </button>
-            </form>
-          )}
-          {cases.length === 0 ? (
-            <p className="text-xs text-muted">No cases yet.</p>
-          ) : (
-            cases.map((testCase) =>
-              editingCaseId === testCase.id ? (
-                <form
-                  key={testCase.id}
-                  className="flex gap-2"
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    const next = caseTitle.trim();
-                    if (!next) return;
-                    setEditingCaseId(null);
-                    void run(() => api.updateCase(testCase.id, { title: next }));
-                  }}
-                >
-                  <input
-                    autoFocus
-                    value={caseTitle}
-                    onChange={(event) => setCaseTitle(event.target.value)}
-                    className={inputClasses}
-                  />
-                  <button type="submit" className={primaryButton}>
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditingCaseId(null)}
-                    className={ghostButton}
-                  >
-                    Cancel
-                  </button>
-                </form>
-              ) : (
-                <div
-                  key={testCase.id}
-                  className="flex items-center gap-2 rounded-[8px] bg-white px-3 py-1.5"
-                >
-                  <span className="min-w-0 flex-1 truncate text-sm text-ink">{testCase.title}</span>
-                  <PriorityBadge priority={testCase.priority} />
-                  <button
-                    type="button"
-                    aria-label="Rename case"
-                    onClick={() => {
-                      setEditingCaseId(testCase.id);
-                      setCaseTitle(testCase.title);
-                    }}
-                    className={iconButton}
-                  >
-                    <Pencil aria-hidden className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="Delete case"
-                    onClick={() => setDeletingCase(testCase)}
-                    className="text-muted transition-colors hover:text-fail"
-                  >
-                    <Trash2 aria-hidden className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              ),
-            )
-          )}
+      {open && hasSteps && (
+        <div className="border-t border-line px-4 py-3 pl-10">
+          <ol className="space-y-2">
+            {testCase.steps.map((step, index) => (
+              <li key={index} className="flex gap-3 text-sm">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary-tint text-[11px] font-bold text-primary-deep">
+                  {index + 1}
+                </span>
+                <span className="text-ink">
+                  {step.action}
+                  {step.expected ? (
+                    <span className="mt-0.5 block text-xs text-muted">Expected: {step.expected}</span>
+                  ) : null}
+                </span>
+              </li>
+            ))}
+          </ol>
         </div>
-      )}
-
-      {confirmDeleteSuite && (
-        <ConfirmModal
-          title="Delete suite"
-          message={`Delete suite "${title}" and all its cases? This cannot be undone.`}
-          onConfirm={removeSuite}
-          onClose={() => setConfirmDeleteSuite(false)}
-        />
-      )}
-      {deletingCase && (
-        <ConfirmModal
-          title="Delete case"
-          message={`Delete case "${deletingCase.title}"? This cannot be undone.`}
-          onConfirm={() => {
-            const target = deletingCase;
-            setDeletingCase(null);
-            void run(() => api.deleteCase(target.id).then(onChange));
-          }}
-          onClose={() => setDeletingCase(null)}
-        />
       )}
     </div>
   );

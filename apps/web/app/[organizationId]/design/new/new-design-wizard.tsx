@@ -26,7 +26,13 @@ import {
 } from '../design-ui';
 import { DescriptionEditor } from '../description-editor';
 import { Markdown } from '../markdown';
-import type { DesignSource } from '@cognitest/shared';
+import type { DesignSource, RequirementPriority } from '@cognitest/shared';
+
+const PRIORITY_OPTIONS = [
+  { value: 'high', label: 'High' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'low', label: 'Low' },
+];
 
 interface Project {
   id: string;
@@ -54,10 +60,16 @@ interface DraftRequirement {
   key: number;
   title: string;
   description: string;
+  priority: RequirementPriority;
 }
 
 let draftKey = 0;
-const emptyDraft = (): DraftRequirement => ({ key: ++draftKey, title: '', description: '' });
+const emptyDraft = (): DraftRequirement => ({
+  key: ++draftKey,
+  title: '',
+  description: '',
+  priority: 'medium',
+});
 
 export function NewDesignWizard({
   organizationId,
@@ -100,6 +112,8 @@ export function NewDesignWizard({
         await api.createRequirement(design.id, {
           title: draft.title.trim(),
           description: draft.description.trim() || undefined,
+          priority: draft.priority,
+          source: source ?? 'manual',
         });
       }
       toast.push('Test design created', 'success');
@@ -291,6 +305,16 @@ export function NewDesignWizard({
                     onChange={(markdown) => updateDraft(draft.key, { description: markdown })}
                     placeholder="Describe the requirement — bold, lists, tables…"
                   />
+                  <label className="flex flex-col gap-1.5 text-sm font-semibold text-ink sm:max-w-xs">
+                    Priority
+                    <Select
+                      options={PRIORITY_OPTIONS}
+                      value={draft.priority}
+                      onChange={(value) =>
+                        updateDraft(draft.key, { priority: value as RequirementPriority })
+                      }
+                    />
+                  </label>
                 </div>
               </div>
             ))}

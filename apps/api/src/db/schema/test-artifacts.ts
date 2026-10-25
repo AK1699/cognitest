@@ -12,6 +12,7 @@ import {
 
 import {
   APPROVAL_STATUSES,
+  REQUIREMENT_PRIORITIES,
   REQUIREMENT_STATUSES,
   TEST_CASE_PRIORITIES,
   TEST_PLAN_STATUSES,
@@ -21,10 +22,11 @@ import { id, timestamps } from './helpers';
 import { organizations } from './organizations';
 import { projects } from './projects';
 import { productSchema } from './schemas';
-import { testDesigns } from './test-designs';
+import { designSource, testDesigns } from './test-designs';
 import { users } from './users';
 
 export const requirementStatus = pgEnum('requirement_status', REQUIREMENT_STATUSES);
+export const requirementPriority = pgEnum('requirement_priority', REQUIREMENT_PRIORITIES);
 export const testPlanStatus = pgEnum('test_plan_status', TEST_PLAN_STATUSES);
 export const approvalStatus = pgEnum('approval_status', APPROVAL_STATUSES);
 export const testCasePriority = pgEnum('test_case_priority', TEST_CASE_PRIORITIES);
@@ -45,6 +47,8 @@ export const requirements = productSchema.table(
     title: text('title').notNull(),
     description: text('description'),
     status: requirementStatus('status').notNull().default('draft'),
+    priority: requirementPriority('priority').notNull().default('medium'),
+    source: designSource('source').notNull().default('manual'),
     createdBy: uuid('created_by')
       .notNull()
       .references(() => users.id),
@@ -82,6 +86,10 @@ export const testPlans = productSchema.table(
     }),
     title: text('title').notNull(),
     description: text('description'),
+    objective: text('objective'),
+    // scope is a list of in-scope areas (spec §16 test plan metadata)
+    scope: jsonb('scope').notNull().default([]),
+    strategy: text('strategy'),
     status: testPlanStatus('status').notNull().default('draft'),
     // approval is version-aware (spec §54): edits after approval bump this
     version: integer('version').notNull().default(1),

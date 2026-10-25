@@ -52,7 +52,15 @@ export class TestPlansService {
     projectId: string,
     organizationId: string,
     userId: string,
-    input: { title: string; description?: string; requirementId?: string; designId?: string },
+    input: {
+      title: string;
+      description?: string;
+      requirementId?: string;
+      designId?: string;
+      objective?: string;
+      scope?: string[];
+      strategy?: string;
+    },
   ) {
     return this.tenantDb.run(async (tx) => {
       if (input.requirementId)
@@ -84,7 +92,14 @@ export class TestPlansService {
   async update(
     projectId: string,
     testPlanId: string,
-    patch: { title?: string; description?: string | null; requirementId?: string | null },
+    patch: {
+      title?: string;
+      description?: string | null;
+      requirementId?: string | null;
+      objective?: string | null;
+      scope?: string[];
+      strategy?: string | null;
+    },
   ) {
     return this.tenantDb.run(async (tx) => {
       const plan = await this.load(tx, projectId, testPlanId);

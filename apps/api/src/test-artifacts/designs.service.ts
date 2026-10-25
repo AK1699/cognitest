@@ -9,6 +9,7 @@ import { and, count, desc, eq } from 'drizzle-orm';
 import { DesignStatus } from '@cognitest/shared';
 import type { DesignSource } from '@cognitest/shared';
 
+import { AiService } from '../ai/ai.service';
 import { AuditService } from '../audit/audit.service';
 import {
   approvals,
@@ -24,6 +25,7 @@ import type { Database } from '../db/db.tokens';
 const ENTITY_TYPE = 'test_design';
 
 type DesignRow = typeof testDesigns.$inferSelect;
+type RequirementRow = typeof requirements.$inferSelect;
 
 interface GeneratedStep {
   action: string;
@@ -32,6 +34,46 @@ interface GeneratedStep {
 interface ParsedScenario {
   title: string;
   steps: GeneratedStep[];
+}
+
+interface PlanMetadata {
+  objective: string;
+  scope: string[];
+  strategy: string;
+}
+
+/**
+ * Derives test-plan metadata from the requirements deterministically — strategy
+ * from the test types the requirement text implies, scope from requirement
+ * titles, objective from the design. No AI, no external calls.
+ */
+function deriveMetadata(design: DesignRow, reqs: RequirementRow[]): PlanMetadata {
+  const haystack = reqs
+    .map((r) => `${r.title} ${r.description ?? ''}`)
+    .join(' ')
+    .toLowerCase();
+
+  const areas = new Set<string>(['Functional']);
+  if (/\b(invalid|fail|reject|error|wrong|incorrect|denied|unauthori|lock|expire)/.test(haystack))
+    areas.add('Negative');
+  if (/\b(boundary|limit|max|min|maximum|minimum|edge|overflow|length|range)/.test(haystack))
+    areas.add('Boundary');
+  if (/\b(api|endpoint|integration|webhook|service|request|response|database)/.test(haystack))
+    areas.add('Integration');
+  if (/\b(security|auth|password|token|permission|encrypt|xss|sql|csrf|tamper|session)/.test(haystack))
+    areas.add('Security');
+  if (/\b(performance|load|latency|throughput|concurrent|scale|timeout)/.test(haystack))
+    areas.add('Performance');
+  const order = ['Functional', 'Negative', 'Boundary', 'Integration', 'Security', 'Performance'];
+  const strategy = order.filter((a) => areas.has(a)).join(' + ');
+
+  const scope = Array.from(new Set(reqs.map((r) => r.title.trim()).filter(Boolean)));
+
+  const objective = design.description?.trim()
+    ? design.description.trim()
+    : `Validate ${design.name} across its ${reqs.length} requirement${reqs.length === 1 ? '' : 's'} (${strategy.toLowerCase()}).`;
+
+  return { objective, scope, strategy };
 }
 
 /** Pulls the body of every fenced ```gherkin block out of a Markdown string. */
@@ -85,6 +127,7 @@ export class DesignsService {
   constructor(
     private readonly tenantDb: TenantDb,
     private readonly audit: AuditService,
+    private readonly ai: AiService,
   ) {}
 
   async list(projectId: string) {
@@ -306,6 +349,25 @@ export class DesignsService {
         throw new BadRequestException('Add requirements before generating test artefacts');
       }
 
+      // deterministic rules first; fall back to the LLM only when the rules have
+      // thin signal (no requirement descriptions) and an API key is configured
+      let metadata = deriveMetadata(design, reqs);
+      const thin = reqs.every((req) => !req.description?.trim());
+      if (thin && this.ai.enabled) {
+        const suggested = await this.ai.suggestPlanMetadata({
+          name: design.name,
+          description: design.description,
+          requirements: reqs.map((req) => ({ title: req.title, description: req.description })),
+        });
+        if (suggested) {
+          metadata = {
+            objective: suggested.objective || metadata.objective,
+            scope: suggested.scope.length ? suggested.scope : metadata.scope,
+            strategy: suggested.strategy || metadata.strategy,
+          };
+        }
+      }
+
       const [plan] = await tx
         .insert(testPlans)
         .values({
@@ -315,6 +377,9 @@ export class DesignsService {
           createdBy: userId,
           title: `${design.name} — Test Plan`,
           description: design.description ?? null,
+          objective: metadata.objective,
+          scope: metadata.scope,
+          strategy: metadata.strategy,
         })
         .returning();
       if (!plan) throw new Error('test plan insert returned no row');

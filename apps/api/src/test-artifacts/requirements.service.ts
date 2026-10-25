@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { and, desc, eq } from 'drizzle-orm';
 
-import type { RequirementStatus } from '@cognitest/shared';
+import type { DesignSource, RequirementPriority, RequirementStatus } from '@cognitest/shared';
 
 import { AuditService } from '../audit/audit.service';
 import { requirements } from '../db/schema';
@@ -39,7 +39,13 @@ export class RequirementsService {
     projectId: string,
     organizationId: string,
     userId: string,
-    input: { title: string; description?: string; designId?: string },
+    input: {
+      title: string;
+      description?: string;
+      designId?: string;
+      priority?: RequirementPriority;
+      source?: DesignSource;
+    },
   ) {
     return this.tenantDb.run(async (tx) => {
       const [requirement] = await tx
@@ -69,7 +75,13 @@ export class RequirementsService {
   async update(
     projectId: string,
     requirementId: string,
-    patch: { title?: string; description?: string | null; status?: RequirementStatus },
+    patch: {
+      title?: string;
+      description?: string | null;
+      status?: RequirementStatus;
+      priority?: RequirementPriority;
+      source?: DesignSource;
+    },
   ) {
     return this.tenantDb.run(async (tx) => {
       const [requirement] = await tx
