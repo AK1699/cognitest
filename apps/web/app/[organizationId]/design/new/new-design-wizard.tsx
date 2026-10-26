@@ -257,8 +257,10 @@ export function NewDesignWizard({
             <div className="mb-5 flex items-start gap-3 rounded-card border border-accent/30 bg-accent-tint/40 p-4">
               <Sparkles aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-accent-deep" />
               <p className="text-sm text-accent-deep">
-                <span className="font-bold">JIRA</span> import is coming soon. For now, add the
-                requirements manually below — you can re-import once it ships.
+                Add a few requirements to create the design, then use{' '}
+                <span className="font-bold">Import</span> on the Requirements tab to pull issues
+                from JIRA, GitHub, Bitbucket or Notion. Connect a provider under Profile →
+                Integrations first.
               </p>
             </div>
           )}

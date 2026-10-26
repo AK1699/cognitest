@@ -29,12 +29,14 @@ import {
   designApi,
   type Approval,
   type DesignApi,
+  type IntegrationSummary,
   type Requirement,
   type TestCase,
   type TestDesign,
   type TestPlan,
   type TestSuite,
 } from '../api';
+import { EntityLinks, ImportRequirementsButton } from './links-panel';
 import {
   PriorityBadge,
   ProgressRing,
@@ -626,10 +628,20 @@ function RequirementsTab({
       title={<h3 className="text-base font-bold text-ink">Requirements</h3>}
       action={
         !adding ? (
-          <button type="button" onClick={() => setAdding(true)} className={primaryButton}>
-            <Plus aria-hidden className="h-4 w-4" />
-            Add Requirement
-          </button>
+          <div className="flex items-center gap-2">
+            <ImportRequirementsButton
+              api={api}
+              designId={designId}
+              onImported={() => {
+                load();
+                onChange();
+              }}
+            />
+            <button type="button" onClick={() => setAdding(true)} className={primaryButton}>
+              <Plus aria-hidden className="h-4 w-4" />
+              Add Requirement
+            </button>
+          </div>
         ) : undefined
       }
     >
@@ -922,13 +934,24 @@ function TraceabilityTab({ api, design }: { api: DesignApi; design: TestDesign }
   const [tree, setTree] = useState<{ plan: TestPlan; suites: { suite: TestSuite; cases: TestCase[] }[] }[]>(
     [],
   );
+  const [requirements, setRequirements] = useState<Requirement[]>([]);
+  const [connected, setConnected] = useState<IntegrationSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let live = true;
     setLoading(true);
     (async () => {
-      const { testPlans } = await api.listPlans(design.id);
+      // connected integrations are optional — never fail traceability over them
+      const [{ testPlans }, { requirements: reqs }, integrations] = await Promise.all([
+        api.listPlans(design.id),
+        api.listRequirements(design.id),
+        api.listIntegrations().catch(() => ({ integrations: [] as IntegrationSummary[] })),
+      ]);
+      if (live) {
+        setRequirements(reqs);
+        setConnected(integrations.integrations.filter((i) => i.status === 'connected'));
+      }
       const built = await Promise.all(
         testPlans.map(async (plan) => {
           const { testSuites } = await api.listSuites(plan.id);
@@ -981,17 +1004,25 @@ function TraceabilityTab({ api, design }: { api: DesignApi; design: TestDesign }
                           <Layers aria-hidden className="h-3.5 w-3.5 text-primary" />
                           {suite.title}
                         </p>
-                        <ul className="mt-1 flex flex-wrap gap-1.5 pl-5">
+                        <ul className="mt-1 space-y-1.5 pl-5">
                           {cases.length === 0 ? (
                             <span className="text-xs text-muted">No cases</span>
                           ) : (
                             cases.map((testCase) => (
-                              <span
+                              <li
                                 key={testCase.id}
-                                className="rounded-full border border-line bg-white px-2.5 py-0.5 text-xs text-ink"
+                                className="flex flex-wrap items-center gap-x-2 gap-y-1"
                               >
-                                {testCase.title}
-                              </span>
+                                <span className="rounded-full border border-line bg-white px-2.5 py-0.5 text-xs text-ink">
+                                  {testCase.title}
+                                </span>
+                                <EntityLinks
+                                  api={api}
+                                  entityType="test_case"
+                                  entityId={testCase.id}
+                                  connected={connected}
+                                />
+                              </li>
                             ))
                           )}
                         </ul>
@@ -1004,10 +1035,42 @@ function TraceabilityTab({ api, design }: { api: DesignApi; design: TestDesign }
           </ul>
         )}
       </SectionCard>
-      <ComingSoon
-        title="Repository & JIRA links"
-        note="Linking requirements to source code and JIRA issues arrives with the integrations phase."
-      />
+
+      <SectionCard
+        title={<h3 className="text-base font-bold text-ink">Issue &amp; repository links</h3>}
+      >
+        {connected.length === 0 && (
+          <p className="mb-3 rounded-[10px] bg-cream/60 px-3 py-2 text-xs text-muted">
+            No integrations connected. Add JIRA, GitHub, Bitbucket or Notion under{' '}
+            <span className="font-semibold text-ink">Profile → Integrations</span> to link
+            requirements and test cases to external items.
+          </p>
+        )}
+        {loading ? (
+          <p className="text-sm text-muted">Loading…</p>
+        ) : requirements.length === 0 ? (
+          <p className="text-sm text-muted">Add requirements to link them to external items.</p>
+        ) : (
+          <ul className="divide-y divide-line">
+            {requirements.map((req) => (
+              <li
+                key={req.id}
+                className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-2.5"
+              >
+                <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">
+                  {req.title}
+                </span>
+                <EntityLinks
+                  api={api}
+                  entityType="requirement"
+                  entityId={req.id}
+                  connected={connected}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+      </SectionCard>
     </div>
   );
 }

@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 
-import type { MeResponse, SessionListItem } from '@cognitest/shared';
+import type { IntegrationConnection, MeResponse, SessionListItem } from '@cognitest/shared';
 
 import { apiGet } from '../../../lib/api';
+import { IntegrationsPanel, type ConnectionView } from './integrations-panel';
 import { ProfileTabs } from './profile-tabs';
 import { SessionsPanel } from './sessions-panel';
 
@@ -14,10 +15,18 @@ interface SessionsResponse {
   sessions: SessionListItem[];
 }
 
-export default async function ProfilePage() {
-  const [me, sessions] = await Promise.all([
+export default async function ProfilePage({
+  params,
+}: {
+  params: Promise<{ organizationId: string }>;
+}) {
+  const { organizationId } = await params;
+  const [me, sessions, integrations] = await Promise.all([
     apiGet<MeResponse>('/auth/me'),
     apiGet<SessionsResponse>('/auth/sessions'),
+    apiGet<{ integrations: IntegrationConnection[] }>(
+      `/organizations/${organizationId}/integrations`,
+    ),
   ]);
   if (!me) redirect('/login');
 
@@ -48,27 +57,17 @@ export default async function ProfilePage() {
     </div>
   );
 
-  const integrationCatalogue = [
-    { name: 'JIRA', description: 'Link test cases to issues and sync defect status.' },
-    { name: 'Bitbucket', description: 'Connect repositories to trace tests against commits.' },
-    { name: 'GitHub', description: 'Connect repositories and pull requests to test runs.' },
-    { name: 'Notion', description: 'Sync requirements and test documentation.' },
-  ];
+  const connections: ConnectionView[] = (integrations?.integrations ?? []).map((c) => ({
+    provider: c.provider,
+    status: c.status,
+    accountLabel: c.accountLabel,
+    config: c.config,
+    lastError: c.lastError,
+    lastVerifiedAt: c.lastVerifiedAt ? c.lastVerifiedAt.toString() : null,
+  }));
 
-  const integrations = (
-    <ul className="divide-y divide-line">
-      {integrationCatalogue.map((integration) => (
-        <li key={integration.name} className="flex items-center justify-between gap-4 py-3.5">
-          <div>
-            <p className="text-sm font-semibold text-ink">{integration.name}</p>
-            <p className="text-xs text-muted">{integration.description}</p>
-          </div>
-          <span className="shrink-0 rounded-full bg-primary-tint px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-deep">
-            Coming soon
-          </span>
-        </li>
-      ))}
-    </ul>
+  const integrationsPanel = (
+    <IntegrationsPanel organizationId={organizationId} initialConnections={connections} />
   );
 
   const security = (
@@ -98,7 +97,11 @@ export default async function ProfilePage() {
   return (
     <div>
       <h1 className="mb-6 text-3xl font-bold text-primary-deep">Profile</h1>
-      <ProfileTabs information={information} integrations={integrations} security={security} />
+      <ProfileTabs
+        information={information}
+        integrations={integrationsPanel}
+        security={security}
+      />
     </div>
   );
 }

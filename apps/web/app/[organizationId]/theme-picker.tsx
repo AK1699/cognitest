@@ -1,10 +1,17 @@
 'use client';
 
+import { Monitor, Moon, Sun } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 type Theme = 'light' | 'dark' | 'system';
 
 const STORAGE_KEY = 'cognitest-theme';
+
+const OPTIONS = [
+  { value: 'light', label: 'Light', Icon: Sun },
+  { value: 'dark', label: 'Dark', Icon: Moon },
+  { value: 'system', label: 'System', Icon: Monitor },
+] as const;
 
 function apply(theme: Theme) {
   const dark =
@@ -40,20 +47,21 @@ export function ThemePicker() {
   }
 
   return (
-    <div className="flex rounded-[10px] border border-line p-0.5">
-      {(['light', 'dark', 'system'] as const).map((option) => (
+    <div className="flex rounded-[10px] border border-line bg-cream/60 p-0.5">
+      {OPTIONS.map(({ value, label, Icon }) => (
         <button
-          key={option}
+          key={value}
           type="button"
-          onClick={() => select(option)}
-          aria-pressed={theme === option}
-          className={`flex-1 rounded-[8px] px-2 py-1 text-xs font-semibold capitalize transition-colors ${
-            theme === option
-              ? 'bg-primary-tint text-primary-deep'
+          onClick={() => select(value)}
+          aria-pressed={theme === value}
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-[8px] px-2 py-1.5 text-xs font-semibold transition-colors ${
+            theme === value
+              ? 'bg-white text-primary-deep shadow-sm'
               : 'text-muted hover:text-ink'
           }`}
         >
-          {option}
+          <Icon className="h-3.5 w-3.5" aria-hidden />
+          {label}
         </button>
       ))}
     </div>

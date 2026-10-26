@@ -43,10 +43,14 @@ const TENANT_TABLES = [
   'project_members',
   'invitations',
   'audit_logs',
+  'integration_connections',
+  'external_links',
 ] as const;
 
 async function cleanup() {
   // FK-safe order; fixtures use throwaway UUIDs so this only touches our rows
+  await owner`delete from external_links where organization_id in (${orgA}, ${orgB})`;
+  await owner`delete from integration_connections where organization_id in (${orgA}, ${orgB})`;
   await owner`delete from audit_logs where organization_id in (${orgA}, ${orgB})`;
   await owner`delete from invitations where organization_id in (${orgA}, ${orgB})`;
   await owner`delete from project_members where organization_id in (${orgA}, ${orgB})`;
@@ -87,6 +91,13 @@ beforeAll(async () => {
   await owner`insert into audit_logs (organization_id, actor_user_id, action, resource_type) values
     (${orgA}, ${userA}, 'ORGANIZATION_CREATED', 'organization'),
     (${orgB}, ${userB}, 'ORGANIZATION_CREATED', 'organization')`;
+  await owner`insert into integration_connections (organization_id, provider, secret_encrypted, created_by) values
+    (${orgA}, 'jira', 'enc-a', ${userA}),
+    (${orgB}, 'jira', 'enc-b', ${userB})`;
+  await owner`insert into external_links
+    (organization_id, provider, entity_type, entity_id, external_key, external_url, created_by) values
+    (${orgA}, 'jira', 'requirement', ${projectA}, 'AX-1', 'https://x/AX-1', ${userA}),
+    (${orgB}, 'jira', 'requirement', ${projectB}, 'BX-1', 'https://x/BX-1', ${userB})`;
 });
 
 afterAll(async () => {

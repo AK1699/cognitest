@@ -19,6 +19,7 @@ import { RequestContextMiddleware } from './common/context/request-context.middl
 import { validateEnv } from './config/env.schema';
 import { DbModule } from './db/db.module';
 import { HealthModule } from './health/health.module';
+import { IntegrationsModule } from './integrations/integrations.module';
 import { InvitationsModule } from './invitations/invitations.module';
 import { OrganizationsModule } from './organizations/organizations.module';
 import { ProjectsModule } from './projects/projects.module';
@@ -59,6 +60,7 @@ import { UsersModule } from './users/users.module';
     ProjectsModule,
     TeamsModule,
     TestArtifactsModule,
+    IntegrationsModule,
     InvitationsModule,
     RbacModule,
     AuditModule,

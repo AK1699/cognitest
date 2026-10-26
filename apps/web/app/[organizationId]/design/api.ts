@@ -6,6 +6,8 @@
 import type {
   DesignSource,
   DesignStatus,
+  ExternalLinkEntityType,
+  IntegrationProvider,
   RequirementPriority,
   RequirementStatus,
   TestCasePriority,
@@ -79,6 +81,31 @@ export interface Approval {
   createdAt: string;
 }
 
+export interface IntegrationSummary {
+  provider: IntegrationProvider;
+  status: 'connected' | 'error';
+  accountLabel: string | null;
+}
+
+export interface SearchHit {
+  key: string;
+  title: string;
+  url: string;
+  state: string | null;
+}
+
+export interface ExternalLinkView {
+  id: string;
+  provider: IntegrationProvider;
+  entityType: ExternalLinkEntityType;
+  entityId: string;
+  externalKey: string;
+  externalUrl: string;
+  title: string | null;
+  state: string | null;
+  syncedAt: string | null;
+}
+
 async function readError(res: Response): Promise<string> {
   const payload = (await res.json().catch(() => null)) as { message?: unknown } | null;
   if (Array.isArray(payload?.message)) return payload.message.map(String).join('. ');
@@ -98,6 +125,7 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
 /** Builds a Design-module client scoped to one organisation + project. */
 export function designApi(organizationId: string, projectId: string) {
   const base = `/api/organizations/${organizationId}/projects/${projectId}`;
+  const orgBase = `/api/organizations/${organizationId}`;
   const designBase = (designId: string) => `${base}/designs/${designId}`;
 
   return {
@@ -231,6 +259,46 @@ export function designApi(organizationId: string, projectId: string) {
       }),
     deleteCase: (caseId: string) =>
       request<{ message: string }>(`${base}/test-cases/${caseId}`, { method: 'DELETE' }),
+
+    // --- integrations -------------------------------------------------------
+    listIntegrations: () =>
+      request<{ integrations: IntegrationSummary[] }>(`${orgBase}/integrations`),
+    searchIntegration: (provider: IntegrationProvider, q: string) =>
+      request<{ results: SearchHit[] }>(
+        `${orgBase}/integrations/${provider}/search?q=${encodeURIComponent(q)}`,
+      ),
+    listLinks: (entityType: ExternalLinkEntityType, entityId: string) =>
+      request<{ links: ExternalLinkView[] }>(
+        `${base}/external-links?entityType=${entityType}&entityId=${entityId}`,
+      ),
+    createLink: (body: {
+      provider: IntegrationProvider;
+      entityType: ExternalLinkEntityType;
+      entityId: string;
+      externalKey: string;
+      externalUrl?: string;
+      title?: string;
+      state?: string;
+    }) =>
+      request<{ link: ExternalLinkView }>(`${base}/external-links`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    syncLink: (linkId: string) =>
+      request<{ link: ExternalLinkView }>(`${base}/external-links/${linkId}/sync`, {
+        method: 'POST',
+      }),
+    deleteLink: (linkId: string) =>
+      request<{ message: string }>(`${base}/external-links/${linkId}`, { method: 'DELETE' }),
+    importRequirements: (body: {
+      provider: IntegrationProvider;
+      designId?: string;
+      keys: string[];
+    }) =>
+      request<{ imported: number; requirements: Requirement[] }>(
+        `${base}/integrations/import-requirements`,
+        { method: 'POST', body: JSON.stringify(body) },
+      ),
   };
 }
 

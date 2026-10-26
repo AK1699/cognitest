@@ -110,3 +110,31 @@ export const OAuthProvider = {
   Google: 'google',
   Microsoft: 'microsoft',
 } as const satisfies Record<string, OAuthProvider>;
+
+// External delivery tools an organisation can connect (PAT/API-token auth).
+export const INTEGRATION_PROVIDERS = ['jira', 'github', 'bitbucket', 'notion'] as const;
+export type IntegrationProvider = (typeof INTEGRATION_PROVIDERS)[number];
+export const IntegrationProvider = {
+  Jira: 'jira',
+  GitHub: 'github',
+  Bitbucket: 'bitbucket',
+  Notion: 'notion',
+} as const satisfies Record<string, IntegrationProvider>;
+
+// A connection is healthy once its credentials verify; it flips to error when a
+// later verify/sync fails (the credentials are still stored so the user can fix them).
+export const INTEGRATION_STATUSES = ['connected', 'error'] as const;
+export type IntegrationStatus = (typeof INTEGRATION_STATUSES)[number];
+export const IntegrationStatus = {
+  Connected: 'connected',
+  Error: 'error',
+} as const satisfies Record<string, IntegrationStatus>;
+
+// Product entities an external link may hang off (polymorphic — no FK).
+export const EXTERNAL_LINK_ENTITY_TYPES = ['requirement', 'test_case', 'test_design'] as const;
+export type ExternalLinkEntityType = (typeof EXTERNAL_LINK_ENTITY_TYPES)[number];
+export const ExternalLinkEntityType = {
+  Requirement: 'requirement',
+  TestCase: 'test_case',
+  TestDesign: 'test_design',
+} as const satisfies Record<string, ExternalLinkEntityType>;

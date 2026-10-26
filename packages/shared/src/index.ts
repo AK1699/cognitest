@@ -3,6 +3,7 @@ export * from './permissions';
 export * from './schemas/audit';
 export * from './schemas/auth';
 export * from './schemas/health';
+export * from './schemas/integration';
 export * from './schemas/invitation';
 export * from './schemas/organization';
 export * from './schemas/project';
