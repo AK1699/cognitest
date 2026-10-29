@@ -11,6 +11,7 @@ import { AuditModule } from './audit/audit.module';
 import { AuthModule } from './auth/auth.module';
 import { AuthGuard } from './auth/guards/auth.guard';
 import { CsrfGuard } from './auth/guards/csrf.guard';
+import { AutomationModule } from './automation/automation.module';
 import { AuthzModule } from './authz/authz.module';
 import { PermissionGuard } from './authz/guards/permission.guard';
 import { TenantGuard } from './authz/guards/tenant.guard';
@@ -60,6 +61,7 @@ import { UsersModule } from './users/users.module';
     ProjectsModule,
     TeamsModule,
     TestArtifactsModule,
+    AutomationModule,
     IntegrationsModule,
     InvitationsModule,
     RbacModule,

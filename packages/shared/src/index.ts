@@ -2,6 +2,7 @@ export * from './enums';
 export * from './permissions';
 export * from './schemas/audit';
 export * from './schemas/auth';
+export * from './schemas/automation';
 export * from './schemas/health';
 export * from './schemas/integration';
 export * from './schemas/invitation';

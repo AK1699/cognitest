@@ -130,6 +130,70 @@ export const IntegrationStatus = {
   Error: 'error',
 } as const satisfies Record<string, IntegrationStatus>;
 
+// ---------------------------------------------------------------------------
+// Automation module — saved web-automation flows, their executable test cases,
+// and run records. Execution itself is a later phase (desktop agents); runs are
+// recorded here and, until the runtime lands, simulated deterministically.
+// ---------------------------------------------------------------------------
+
+// draft → active (ready to run) → disabled (retired but kept); archived is the
+// soft-delete terminal, mirroring designs/plans.
+export const AUTOMATION_STATUSES = ['draft', 'active', 'disabled', 'archived'] as const;
+export type AutomationStatus = (typeof AUTOMATION_STATUSES)[number];
+export const AutomationStatus = {
+  Draft: 'draft',
+  Active: 'active',
+  Disabled: 'disabled',
+  Archived: 'archived',
+} as const satisfies Record<string, AutomationStatus>;
+
+// How an automation was authored (the "Create Automation" method picker).
+export const AUTOMATION_METHODS = ['from_test_cases', 'visual', 'record', 'import'] as const;
+export type AutomationMethod = (typeof AUTOMATION_METHODS)[number];
+export const AutomationMethod = {
+  FromTestCases: 'from_test_cases',
+  Visual: 'visual',
+  Record: 'record',
+  Import: 'import',
+} as const satisfies Record<string, AutomationMethod>;
+
+// Underlying automation framework the generated code targets.
+export const AUTOMATION_FRAMEWORKS = ['playwright', 'cypress', 'selenium', 'puppeteer'] as const;
+export type AutomationFramework = (typeof AUTOMATION_FRAMEWORKS)[number];
+export const AutomationFramework = {
+  Playwright: 'playwright',
+  Cypress: 'cypress',
+  Selenium: 'selenium',
+  Puppeteer: 'puppeteer',
+} as const satisfies Record<string, AutomationFramework>;
+
+// Lifecycle of a single run record.
+export const AUTOMATION_RUN_STATUSES = [
+  'queued',
+  'running',
+  'passed',
+  'failed',
+  'cancelled',
+] as const;
+export type AutomationRunStatus = (typeof AUTOMATION_RUN_STATUSES)[number];
+export const AutomationRunStatus = {
+  Queued: 'queued',
+  Running: 'running',
+  Passed: 'passed',
+  Failed: 'failed',
+  Cancelled: 'cancelled',
+} as const satisfies Record<string, AutomationRunStatus>;
+
+// Outcome of a single automated test — `not_run` until its first execution.
+export const AUTOMATION_TEST_STATUSES = ['not_run', 'passed', 'failed', 'skipped'] as const;
+export type AutomationTestStatus = (typeof AUTOMATION_TEST_STATUSES)[number];
+export const AutomationTestStatus = {
+  NotRun: 'not_run',
+  Passed: 'passed',
+  Failed: 'failed',
+  Skipped: 'skipped',
+} as const satisfies Record<string, AutomationTestStatus>;
+
 // Product entities an external link may hang off (polymorphic — no FK).
 export const EXTERNAL_LINK_ENTITY_TYPES = ['requirement', 'test_case', 'test_design'] as const;
 export type ExternalLinkEntityType = (typeof EXTERNAL_LINK_ENTITY_TYPES)[number];

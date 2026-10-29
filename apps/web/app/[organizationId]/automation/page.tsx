@@ -1,14 +1,27 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 
-import { ComingSoon } from '../coming-soon';
+import { apiGet } from '../../../lib/api';
+import { AutomationLanding } from './automation-landing';
 
 export const metadata: Metadata = { title: 'Automation — Cognitest' };
+export const dynamic = 'force-dynamic';
 
-export default function AutomationPage() {
+interface ProjectsResponse {
+  projects: { id: string; key: string; name: string; status: string }[];
+}
+
+export default async function AutomationPage({
+  params,
+}: {
+  params: Promise<{ organizationId: string }>;
+}) {
+  const { organizationId } = await params;
+  const projects = await apiGet<ProjectsResponse>(`/organizations/${organizationId}/projects`);
+
   return (
-    <ComingSoon
-      title="Automation"
-      blurb="Web automation runs generated from your approved test plans, executed by desktop agents with live progress and evidence capture."
-    />
+    <Suspense>
+      <AutomationLanding organizationId={organizationId} projects={projects?.projects ?? []} />
+    </Suspense>
   );
 }

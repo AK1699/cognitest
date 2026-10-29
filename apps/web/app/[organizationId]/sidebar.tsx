@@ -52,7 +52,7 @@ const NAV_GROUPS: { title: string | null; items: NavItem[] }[] = [
         label: 'Automation',
         icon: Workflow,
         iconColor: 'text-warn',
-        enabled: false,
+        enabled: true,
       },
       {
         segment: 'api-testing',

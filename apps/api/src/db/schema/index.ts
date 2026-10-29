@@ -1,5 +1,6 @@
 export * from './audit-logs';
 export * from './auth-tokens';
+export * from './automation';
 export * from './helpers';
 export * from './integrations';
 export * from './invitations';

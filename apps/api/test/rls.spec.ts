@@ -28,6 +28,8 @@ const teamA = randomUUID();
 const teamB = randomUUID();
 const projectA = randomUUID();
 const projectB = randomUUID();
+const automationA = randomUUID();
+const automationB = randomUUID();
 
 async function setContext(organizationId: string | null, userId: string | null = null) {
   await app`select set_config('app.organization_id', ${organizationId ?? ''}, false),
@@ -45,10 +47,16 @@ const TENANT_TABLES = [
   'audit_logs',
   'integration_connections',
   'external_links',
+  'automations',
+  'automation_tests',
+  'automation_runs',
 ] as const;
 
 async function cleanup() {
   // FK-safe order; fixtures use throwaway UUIDs so this only touches our rows
+  await owner`delete from automation_runs where organization_id in (${orgA}, ${orgB})`;
+  await owner`delete from automation_tests where organization_id in (${orgA}, ${orgB})`;
+  await owner`delete from automations where organization_id in (${orgA}, ${orgB})`;
   await owner`delete from external_links where organization_id in (${orgA}, ${orgB})`;
   await owner`delete from integration_connections where organization_id in (${orgA}, ${orgB})`;
   await owner`delete from audit_logs where organization_id in (${orgA}, ${orgB})`;
@@ -98,6 +106,15 @@ beforeAll(async () => {
     (organization_id, provider, entity_type, entity_id, external_key, external_url, created_by) values
     (${orgA}, 'jira', 'requirement', ${projectA}, 'AX-1', 'https://x/AX-1', ${userA}),
     (${orgB}, 'jira', 'requirement', ${projectB}, 'BX-1', 'https://x/BX-1', ${userB})`;
+  await owner`insert into automations (id, organization_id, project_id, name, created_by) values
+    (${automationA}, ${orgA}, ${projectA}, 'Login A', ${userA}),
+    (${automationB}, ${orgB}, ${projectB}, 'Login B', ${userB})`;
+  await owner`insert into automation_tests (organization_id, automation_id, key, title, created_by) values
+    (${orgA}, ${automationA}, 'TC-001', 'Valid login A', ${userA}),
+    (${orgB}, ${automationB}, 'TC-001', 'Valid login B', ${userB})`;
+  await owner`insert into automation_runs (organization_id, automation_id, triggered_by) values
+    (${orgA}, ${automationA}, ${userA}),
+    (${orgB}, ${automationB}, ${userB})`;
 });
 
 afterAll(async () => {
