@@ -78,6 +78,62 @@
       "when": 1789192573496,
       "tag": "0010_schema_categorization",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1789212124066,
+      "tag": "0011_product_artifacts",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1789212156196,
+      "tag": "0012_product_rls",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1789807775869,
+      "tag": "0013_glorious_preak",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1789878856795,
+      "tag": "0014_burly_night_nurse",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1792847676649,
+      "tag": "0015_calm_ravenous",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1792895166512,
+      "tag": "0016_nifty_infant_terrible",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1792899303627,
+      "tag": "0017_lazy_husk",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1792978315741,
+      "tag": "0018_optimal_fenris",
+      "breakpoints": true
     }
   ]
 }

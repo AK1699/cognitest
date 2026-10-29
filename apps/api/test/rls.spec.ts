@@ -28,6 +28,8 @@ const teamA = randomUUID();
 const teamB = randomUUID();
 const projectA = randomUUID();
 const projectB = randomUUID();
+const automationA = randomUUID();
+const automationB = randomUUID();
 
 async function setContext(organizationId: string | null, userId: string | null = null) {
   await app`select set_config('app.organization_id', ${organizationId ?? ''}, false),
@@ -43,10 +45,20 @@ const TENANT_TABLES = [
   'project_members',
   'invitations',
   'audit_logs',
+  'integration_connections',
+  'external_links',
+  'automations',
+  'automation_tests',
+  'automation_runs',
 ] as const;
 
 async function cleanup() {
   // FK-safe order; fixtures use throwaway UUIDs so this only touches our rows
+  await owner`delete from automation_runs where organization_id in (${orgA}, ${orgB})`;
+  await owner`delete from automation_tests where organization_id in (${orgA}, ${orgB})`;
+  await owner`delete from automations where organization_id in (${orgA}, ${orgB})`;
+  await owner`delete from external_links where organization_id in (${orgA}, ${orgB})`;
+  await owner`delete from integration_connections where organization_id in (${orgA}, ${orgB})`;
   await owner`delete from audit_logs where organization_id in (${orgA}, ${orgB})`;
   await owner`delete from invitations where organization_id in (${orgA}, ${orgB})`;
   await owner`delete from project_members where organization_id in (${orgA}, ${orgB})`;
@@ -76,9 +88,9 @@ beforeAll(async () => {
     (${teamA}, ${orgA}, 'Team A', 'general'), (${teamB}, ${orgB}, 'Team B', 'general')`;
   await owner`insert into team_members (team_id, organization_id, user_id) values
     (${teamA}, ${orgA}, ${userA}), (${teamB}, ${orgB}, ${userB})`;
-  await owner`insert into projects (id, organization_id, key, name, created_by) values
-    (${projectA}, ${orgA}, 'PRJA', 'Project A', ${userA}),
-    (${projectB}, ${orgB}, 'PRJB', 'Project B', ${userB})`;
+  await owner`insert into projects (id, organization_id, team_id, key, name, created_by) values
+    (${projectA}, ${orgA}, ${teamA}, 'PRJA', 'Project A', ${userA}),
+    (${projectB}, ${orgB}, ${teamB}, 'PRJB', 'Project B', ${userB})`;
   await owner`insert into project_members (project_id, organization_id, user_id) values
     (${projectA}, ${orgA}, ${userA}), (${projectB}, ${orgB}, ${userB})`;
   await owner`insert into invitations (organization_id, email, role_id, token_hash, invited_by, expires_at) values
@@ -87,6 +99,22 @@ beforeAll(async () => {
   await owner`insert into audit_logs (organization_id, actor_user_id, action, resource_type) values
     (${orgA}, ${userA}, 'ORGANIZATION_CREATED', 'organization'),
     (${orgB}, ${userB}, 'ORGANIZATION_CREATED', 'organization')`;
+  await owner`insert into integration_connections (organization_id, provider, secret_encrypted, created_by) values
+    (${orgA}, 'jira', 'enc-a', ${userA}),
+    (${orgB}, 'jira', 'enc-b', ${userB})`;
+  await owner`insert into external_links
+    (organization_id, provider, entity_type, entity_id, external_key, external_url, created_by) values
+    (${orgA}, 'jira', 'requirement', ${projectA}, 'AX-1', 'https://x/AX-1', ${userA}),
+    (${orgB}, 'jira', 'requirement', ${projectB}, 'BX-1', 'https://x/BX-1', ${userB})`;
+  await owner`insert into automations (id, organization_id, project_id, name, created_by) values
+    (${automationA}, ${orgA}, ${projectA}, 'Login A', ${userA}),
+    (${automationB}, ${orgB}, ${projectB}, 'Login B', ${userB})`;
+  await owner`insert into automation_tests (organization_id, automation_id, key, title, created_by) values
+    (${orgA}, ${automationA}, 'TC-001', 'Valid login A', ${userA}),
+    (${orgB}, ${automationB}, 'TC-001', 'Valid login B', ${userB})`;
+  await owner`insert into automation_runs (organization_id, automation_id, triggered_by) values
+    (${orgA}, ${automationA}, ${userA}),
+    (${orgB}, ${automationB}, ${userB})`;
 });
 
 afterAll(async () => {

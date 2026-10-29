@@ -72,35 +72,44 @@ describe('tenant isolation (e2e)', () => {
     const charlie = await signupUser(app, DOMAIN, 'charlie');
     await addMemberWithRole(owner, orgA, charlie.id, 'viewer');
     // viewer cannot create teams
-    const denied = await app.getHttpAdapter().getInstance().inject({
-      method: 'POST',
-      url: `/organizations/${orgA}/teams`,
-      payload: { name: 'C', slug: 'c-team' },
-      headers: charlie.cookie,
-      remoteAddress: uniqueIp(),
-    });
+    const denied = await app
+      .getHttpAdapter()
+      .getInstance()
+      .inject({
+        method: 'POST',
+        url: `/organizations/${orgA}/teams`,
+        payload: { name: 'C', slug: 'c-team' },
+        headers: charlie.cookie,
+        remoteAddress: uniqueIp(),
+      });
     expect(denied.statusCode).toBe(403);
 
     // alice (admin) promotes charlie to manager via the API → cache invalidated
     const [member] = await owner`select id from organization_members
       where organization_id = ${orgA} and user_id = ${charlie.id}`;
     const [managerRole] = await owner`select id from roles where key = 'manager' and is_system`;
-    const promote = await app.getHttpAdapter().getInstance().inject({
-      method: 'PATCH',
-      url: `/organizations/${orgA}/members/${member?.id}`,
-      payload: { roleId: managerRole?.id },
-      headers: alice.cookie,
-      remoteAddress: uniqueIp(),
-    });
+    const promote = await app
+      .getHttpAdapter()
+      .getInstance()
+      .inject({
+        method: 'PATCH',
+        url: `/organizations/${orgA}/members/${member?.id}`,
+        payload: { roleId: managerRole?.id },
+        headers: alice.cookie,
+        remoteAddress: uniqueIp(),
+      });
     expect(promote.statusCode).toBe(200);
 
-    const allowed = await app.getHttpAdapter().getInstance().inject({
-      method: 'POST',
-      url: `/organizations/${orgA}/teams`,
-      payload: { name: 'C', slug: 'c-team' },
-      headers: charlie.cookie,
-      remoteAddress: uniqueIp(),
-    });
+    const allowed = await app
+      .getHttpAdapter()
+      .getInstance()
+      .inject({
+        method: 'POST',
+        url: `/organizations/${orgA}/teams`,
+        payload: { name: 'C', slug: 'c-team' },
+        headers: charlie.cookie,
+        remoteAddress: uniqueIp(),
+      });
     expect(allowed.statusCode).toBe(201);
   });
 
@@ -110,21 +119,27 @@ describe('tenant isolation (e2e)', () => {
       where om.organization_id = ${orgA} and r.key = 'admin'`;
     const [viewerRole] = await owner`select id from roles where key = 'viewer' and is_system`;
 
-    const downgrade = await app.getHttpAdapter().getInstance().inject({
-      method: 'PATCH',
-      url: `/organizations/${orgA}/members/${member?.id}`,
-      payload: { roleId: viewerRole?.id },
-      headers: alice.cookie,
-      remoteAddress: uniqueIp(),
-    });
+    const downgrade = await app
+      .getHttpAdapter()
+      .getInstance()
+      .inject({
+        method: 'PATCH',
+        url: `/organizations/${orgA}/members/${member?.id}`,
+        payload: { roleId: viewerRole?.id },
+        headers: alice.cookie,
+        remoteAddress: uniqueIp(),
+      });
     expect(downgrade.statusCode).toBe(400);
 
-    const remove = await app.getHttpAdapter().getInstance().inject({
-      method: 'DELETE',
-      url: `/organizations/${orgA}/members/${member?.id}`,
-      headers: alice.cookie,
-      remoteAddress: uniqueIp(),
-    });
+    const remove = await app
+      .getHttpAdapter()
+      .getInstance()
+      .inject({
+        method: 'DELETE',
+        url: `/organizations/${orgA}/members/${member?.id}`,
+        headers: alice.cookie,
+        remoteAddress: uniqueIp(),
+      });
     expect(remove.statusCode).toBe(400);
   });
 
@@ -133,13 +148,16 @@ describe('tenant isolation (e2e)', () => {
     await addMemberWithRole(owner, orgA, dave.id, 'tester');
 
     // alice creates a project without dave
-    const created = await app.getHttpAdapter().getInstance().inject({
-      method: 'POST',
-      url: `/organizations/${orgA}/projects`,
-      payload: { key: 'SECR', name: 'Secret' },
-      headers: alice.cookie,
-      remoteAddress: uniqueIp(),
-    });
+    const created = await app
+      .getHttpAdapter()
+      .getInstance()
+      .inject({
+        method: 'POST',
+        url: `/organizations/${orgA}/projects`,
+        payload: { key: 'SECR', name: 'Secret' },
+        headers: alice.cookie,
+        remoteAddress: uniqueIp(),
+      });
     expect(created.statusCode).toBe(201);
     const projectId = (created.json() as { project: { id: string } }).project.id;
 
@@ -151,14 +169,76 @@ describe('tenant isolation (e2e)', () => {
     expect((await get(`/organizations/${orgA}/projects/${projectId}`, dave)).statusCode).toBe(404);
 
     // membership grants access
-    const add = await app.getHttpAdapter().getInstance().inject({
-      method: 'POST',
-      url: `/organizations/${orgA}/projects/${projectId}/members`,
-      payload: { userId: dave.id },
-      headers: alice.cookie,
-      remoteAddress: uniqueIp(),
-    });
+    const add = await app
+      .getHttpAdapter()
+      .getInstance()
+      .inject({
+        method: 'POST',
+        url: `/organizations/${orgA}/projects/${projectId}/members`,
+        payload: { userId: dave.id },
+        headers: alice.cookie,
+        remoteAddress: uniqueIp(),
+      });
     expect(add.statusCode).toBe(201);
     expect((await get(`/organizations/${orgA}/projects/${projectId}`, dave)).statusCode).toBe(200);
+  });
+
+  it('a second organization created by the same user shares no data with the first', async () => {
+    const inject = (method: 'POST' | 'GET', url: string, payload?: object) =>
+      app.getHttpAdapter().getInstance().inject({
+        method,
+        url,
+        payload,
+        headers: alice.cookie,
+        remoteAddress: uniqueIp(),
+      });
+
+    // seed a project in alice's first org, then create a fresh org as alice
+    const seeded = await inject('POST', `/organizations/${orgA}/projects`, {
+      key: 'ISO',
+      name: 'Isolation probe',
+    });
+    expect(seeded.statusCode).toBe(201);
+    const createdOrg = await inject('POST', '/organizations', { name: 'Second Workspace' });
+    expect(createdOrg.statusCode).toBe(201);
+    const orgNew = (createdOrg.json() as { organization: { id: string } }).organization.id;
+    expect(orgNew).not.toBe(orgA);
+
+    // the new org starts empty: none of org A's teams or projects appear
+    const teamsA = (await inject('GET', `/organizations/${orgA}/teams`)).json() as {
+      teams: { id: string }[];
+    };
+    const teamsNew = (await inject('GET', `/organizations/${orgNew}/teams`)).json() as {
+      teams: { id: string }[];
+    };
+    const teamIdsA = new Set(teamsA.teams.map((t) => t.id));
+    expect(teamsNew.teams.some((t) => teamIdsA.has(t.id))).toBe(false);
+
+    const projectsNew = (await inject('GET', `/organizations/${orgNew}/projects`)).json() as {
+      projects: unknown[];
+    };
+    expect(projectsNew.projects).toEqual([]);
+  });
+
+  it('deleting a project removes it permanently', async () => {
+    const inject = (method: 'POST' | 'DELETE', url: string, payload?: object) =>
+      app.getHttpAdapter().getInstance().inject({
+        method,
+        url,
+        payload,
+        headers: alice.cookie,
+        remoteAddress: uniqueIp(),
+      });
+
+    const created = await inject('POST', `/organizations/${orgA}/projects`, {
+      key: 'TMP',
+      name: 'Temporary',
+    });
+    expect(created.statusCode).toBe(201);
+    const projectId = (created.json() as { project: { id: string } }).project.id;
+    const projectUrl = `/organizations/${orgA}/projects/${projectId}`;
+
+    expect((await inject('DELETE', projectUrl)).statusCode).toBe(200);
+    expect((await get(projectUrl, alice)).statusCode).toBe(404);
   });
 });

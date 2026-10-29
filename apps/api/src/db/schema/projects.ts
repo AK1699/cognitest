@@ -6,6 +6,7 @@ import { PROJECT_STATUSES } from '@cognitest/shared';
 
 import { id, timestamps } from './helpers';
 import { organizations } from './organizations';
+import { teams } from './teams';
 import { users } from './users';
 
 export const projectStatus = pgEnum('project_status', PROJECT_STATUSES);
@@ -17,6 +18,9 @@ export const projects = productSchema.table(
     organizationId: uuid('organization_id')
       .notNull()
       .references(() => organizations.id),
+    // optional org > team > project mapping (Jira model): a project may have
+    // an owning team, but teams are never a gate on project creation
+    teamId: uuid('team_id'),
     // short human identifier unique within the org, e.g. CORE
     key: text('key').notNull(),
     name: text('name').notNull(),
@@ -31,6 +35,14 @@ export const projects = productSchema.table(
     unique('projects_org_key_uq').on(t.organizationId, t.key),
     unique('projects_id_org_uq').on(t.id, t.organizationId),
     index('projects_organization_id_idx').on(t.organizationId),
+    index('projects_team_id_idx').on(t.teamId),
+    // composite FK pins the team to the same tenant; restrict blocks deleting
+    // a team that still owns projects
+    foreignKey({
+      name: 'projects_team_org_fk',
+      columns: [t.teamId, t.organizationId],
+      foreignColumns: [teams.id, teams.organizationId],
+    }).onDelete('restrict'),
   ],
 );
 

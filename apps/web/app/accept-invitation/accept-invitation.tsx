@@ -51,9 +51,7 @@ export function AcceptInvitation() {
   return (
     <div className="flex flex-col gap-4 text-sm text-ink">
       <p>
-        {state.kind === 'missing'
-          ? 'This link is missing its invitation token.'
-          : state.message}
+        {state.kind === 'missing' ? 'This link is missing its invitation token.' : state.message}
       </p>
       <p className="text-muted">
         Ask your admin to send a new invitation, or{' '}

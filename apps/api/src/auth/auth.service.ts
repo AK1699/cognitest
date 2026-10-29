@@ -61,7 +61,11 @@ export class AuthService {
     const existing = await this.db
       .select({ id: users.id })
       .from(users)
-      .where(or(eq(users.email, input.email), eq(users.username, input.username)));
+      .where(
+        input.username
+          ? or(eq(users.email, input.email), eq(users.username, input.username))
+          : eq(users.email, input.email),
+      );
     if (existing.length > 0) {
       throw new ConflictException('Email or username is already in use');
     }
@@ -70,9 +74,9 @@ export class AuthService {
       .insert(users)
       .values({
         email: input.email,
-        username: input.username,
+        username: input.username ?? null,
         passwordHash,
-        displayName: input.displayName,
+        displayName: input.displayName ?? input.email.split('@')[0] ?? 'New user',
         status: UserStatus.PendingVerification,
       })
       .returning(AUTH_USER_COLUMNS)

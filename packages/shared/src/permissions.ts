@@ -30,6 +30,7 @@ export const GOVERNANCE_RESOURCES = [
 
 /** Product resources: test artefacts, gated mechanically by the role/action matrix. */
 export const PRODUCT_RESOURCES = [
+  'test_design',
   'requirement',
   'test_plan',
   'test_suite',
@@ -59,6 +60,7 @@ export const RESOURCE_ACTIONS: Record<Resource, readonly Action[]> = {
   role: CRUD,
   audit_log: ['read'],
   project: [...CRUD, 'configure'],
+  test_design: [...CRUD, 'approve'],
   requirement: CRUD,
   test_plan: [...CRUD, 'approve', 'execute'],
   test_suite: CRUD,

@@ -16,7 +16,7 @@ const ownerUrl =
 
 const run = randomUUID().slice(0, 8);
 const EMAIL = `mailflow-${run}@mail.test.local`;
-const PASSWORD = 'a-long-secure-password';
+const PASSWORD = 'A-long-secure-passw0rd';
 let ipCounter = 1;
 const uniqueIp = () => `10.97.0.${ipCounter++}`;
 
@@ -106,7 +106,7 @@ describe('email verification and password reset (e2e)', () => {
     const resetToken = mailer.lastTokenFor(EMAIL);
     expect(resetToken).toBeTruthy();
 
-    const newPassword = 'an-even-longer-password';
+    const newPassword = 'An-even-longer-passw0rd';
     expect(
       (await post('/auth/reset-password', { token: resetToken, password: newPassword })).statusCode,
     ).toBe(200);
@@ -123,7 +123,9 @@ describe('email verification and password reset (e2e)', () => {
     ).toBe(401);
     // old password dead, new one works
     expect((await post('/auth/login', { email: EMAIL, password: PASSWORD })).statusCode).toBe(401);
-    expect((await post('/auth/login', { email: EMAIL, password: newPassword })).statusCode).toBe(200);
+    expect((await post('/auth/login', { email: EMAIL, password: newPassword })).statusCode).toBe(
+      200,
+    );
     // token single-use
     expect(
       (await post('/auth/reset-password', { token: resetToken, password: newPassword })).statusCode,

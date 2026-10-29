@@ -32,24 +32,24 @@ Then open <http://localhost:3000> — sign up, verify your email at
 
 ## Workspace layout
 
-| Path               | What it is                                                        |
-| ------------------ | ----------------------------------------------------------------- |
-| `apps/api`         | NestJS (Fastify) API. Drizzle ORM, migrations in `apps/api/drizzle/` |
-| `apps/web`         | Next.js (App Router) web app, Tailwind CSS                        |
-| `packages/shared`  | Zod schemas, inferred types, enums, permission keys (zod-only)    |
-| `packages/config`  | Shared tsconfig base, ESLint flat config, Prettier preset         |
+| Path              | What it is                                                           |
+| ----------------- | -------------------------------------------------------------------- |
+| `apps/api`        | NestJS (Fastify) API. Drizzle ORM, migrations in `apps/api/drizzle/` |
+| `apps/web`        | Next.js (App Router) web app, Tailwind CSS                           |
+| `packages/shared` | Zod schemas, inferred types, enums, permission keys (zod-only)       |
+| `packages/config` | Shared tsconfig base, ESLint flat config, Prettier preset            |
 
 Root scripts: `pnpm dev | build | lint | typecheck | test` (via Turborepo),
 plus `pnpm db:migrate` and `pnpm db:seed`.
 
 ## Local services (docker-compose)
 
-| Service  | Image                   | Ports                          |
-| -------- | ----------------------- | ------------------------------ |
-| postgres | `pgvector/pgvector:pg17`| 5432                           |
-| redis    | `redis:7-alpine`        | 6379                           |
-| minio    | `minio/minio`           | 9000 (S3), 9001 (console)      |
-| mailpit  | `axllent/mailpit`       | 1025 (SMTP), 8025 (UI)         |
+| Service  | Image                    | Ports                     |
+| -------- | ------------------------ | ------------------------- |
+| postgres | `pgvector/pgvector:pg17` | 5432                      |
+| redis    | `redis:7-alpine`         | 6379                      |
+| minio    | `minio/minio`            | 9000 (S3), 9001 (console) |
+| mailpit  | `axllent/mailpit`        | 1025 (SMTP), 8025 (UI)    |
 
 The `cognitest-artifacts` bucket is created automatically on startup.
 
@@ -58,27 +58,27 @@ The `cognitest-artifacts` bucket is created automatically on startup.
 Copy `.env.example` to `.env` (gitignored). Every value defaults to the
 docker-compose setup, so the quickstart works without a `.env` at all.
 
-| Variable | Purpose | Default |
-| --- | --- | --- |
-| `NODE_ENV` | Environment name | `development` |
-| `PORT` | API port | `3001` |
-| `CORS_ORIGIN` | Comma-separated allowed origins | `http://localhost:3000` |
-| `DATABASE_URL` | Runtime Postgres URL — **must use the non-owner `cognitest_app` role so row-level security applies** | `postgres://cognitest:cognitest@…` (schema default; `.env.example` uses `cognitest_app`) |
-| `DATABASE_URL_MIGRATIONS` | Owner URL for migrations/seed only | falls back to `DATABASE_URL` |
-| `DB_POOL_MAX` | Postgres pool size | `10` |
-| `REDIS_URL` | Redis connection string | `redis://localhost:6379` |
-| `WEB_ORIGIN` | Public web origin (CSRF allowlist, mail links, OIDC redirects) | `http://localhost:3000` |
-| `AUTH_SECRET` | Master auth secret (min 32 chars; HKDF subkeys derive at-rest keys) | dev placeholder — **must be set in production** |
-| `SESSION_TTL_SECONDS` | Session lifetime | `2592000` (30 days) |
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google OIDC (provider disabled when unset) | — |
-| `MICROSOFT_CLIENT_ID` / `MICROSOFT_CLIENT_SECRET` / `MICROSOFT_TENANT` | Microsoft OIDC — use a concrete tenant id; multi-tenant `common` is a flagged follow-up | — / — / `common` |
-| `S3_ENDPOINT` | S3-compatible endpoint (MinIO locally) | `http://localhost:9000` |
-| `S3_ACCESS_KEY` / `S3_SECRET_KEY` | Object storage credentials | `cognitest` / `cognitest123` |
-| `S3_BUCKET` | Artifact bucket | `cognitest-artifacts` |
-| `S3_REGION` | S3 region | `us-east-1` |
-| `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` | Reserved for desktop-agent tokens | dev placeholders |
-| `MAIL_HOST` / `MAIL_PORT` / `MAIL_FROM` | SMTP (Mailpit locally; empty host = no-op transport) | `localhost` / `1025` / `noreply@cognitest.local` |
-| `API_URL` | API base URL for the web app's `/api` proxy and server components | `http://localhost:3001` |
+| Variable                                                               | Purpose                                                                                              | Default                                                                                  |
+| ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `NODE_ENV`                                                             | Environment name                                                                                     | `development`                                                                            |
+| `PORT`                                                                 | API port                                                                                             | `3001`                                                                                   |
+| `CORS_ORIGIN`                                                          | Comma-separated allowed origins                                                                      | `http://localhost:3000`                                                                  |
+| `DATABASE_URL`                                                         | Runtime Postgres URL — **must use the non-owner `cognitest_app` role so row-level security applies** | `postgres://cognitest:cognitest@…` (schema default; `.env.example` uses `cognitest_app`) |
+| `DATABASE_URL_MIGRATIONS`                                              | Owner URL for migrations/seed only                                                                   | falls back to `DATABASE_URL`                                                             |
+| `DB_POOL_MAX`                                                          | Postgres pool size                                                                                   | `10`                                                                                     |
+| `REDIS_URL`                                                            | Redis connection string                                                                              | `redis://localhost:6379`                                                                 |
+| `WEB_ORIGIN`                                                           | Public web origin (CSRF allowlist, mail links, OIDC redirects)                                       | `http://localhost:3000`                                                                  |
+| `AUTH_SECRET`                                                          | Master auth secret (min 32 chars; HKDF subkeys derive at-rest keys)                                  | dev placeholder — **must be set in production**                                          |
+| `SESSION_TTL_SECONDS`                                                  | Session lifetime                                                                                     | `2592000` (30 days)                                                                      |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`                            | Google OIDC (provider disabled when unset)                                                           | —                                                                                        |
+| `MICROSOFT_CLIENT_ID` / `MICROSOFT_CLIENT_SECRET` / `MICROSOFT_TENANT` | Microsoft OIDC — use a concrete tenant id; multi-tenant `common` is a flagged follow-up              | — / — / `common`                                                                         |
+| `S3_ENDPOINT`                                                          | S3-compatible endpoint (MinIO locally)                                                               | `http://localhost:9000`                                                                  |
+| `S3_ACCESS_KEY` / `S3_SECRET_KEY`                                      | Object storage credentials                                                                           | `cognitest` / `cognitest123`                                                             |
+| `S3_BUCKET`                                                            | Artifact bucket                                                                                      | `cognitest-artifacts`                                                                    |
+| `S3_REGION`                                                            | S3 region                                                                                            | `us-east-1`                                                                              |
+| `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET`                             | Reserved for desktop-agent tokens                                                                    | dev placeholders                                                                         |
+| `MAIL_HOST` / `MAIL_PORT` / `MAIL_FROM`                                | SMTP (Mailpit locally; empty host = no-op transport)                                                 | `localhost` / `1025` / `noreply@cognitest.local`                                         |
+| `API_URL`                                                              | API base URL for the web app's `/api` proxy and server components                                    | `http://localhost:3001`                                                                  |
 
 ## Authentication & authorization
 

@@ -33,16 +33,20 @@ describe('organization bootstrap (e2e)', () => {
   });
 
   it('POST /organizations creates org + admin membership + default team + audit, atomically', async () => {
-    const res = await app.getHttpAdapter().getInstance().inject({
-      method: 'POST',
-      url: '/organizations',
-      payload: { name: 'Second Workspace' },
-      headers: user.cookie,
-      remoteAddress: uniqueIp(),
-    });
+    const res = await app
+      .getHttpAdapter()
+      .getInstance()
+      .inject({
+        method: 'POST',
+        url: '/organizations',
+        payload: { name: 'Second Workspace' },
+        headers: user.cookie,
+        remoteAddress: uniqueIp(),
+      });
     expect(res.statusCode).toBe(201);
-    const organization = (res.json() as { organization: { id: string; slug: string; onboardingStatus: string } })
-      .organization;
+    const organization = (
+      res.json() as { organization: { id: string; slug: string; onboardingStatus: string } }
+    ).organization;
     // base slug, or suffixed when an org with the base slug already exists
     expect(organization.slug).toMatch(/^second-workspace(-[a-f0-9]{6})?$/);
     expect(organization.onboardingStatus).toBe('in_progress');
@@ -63,30 +67,36 @@ describe('organization bootstrap (e2e)', () => {
   });
 
   it('slug collisions get a random suffix', async () => {
-    const res = await app.getHttpAdapter().getInstance().inject({
-      method: 'POST',
-      url: '/organizations',
-      payload: { name: 'Second Workspace' },
-      headers: user.cookie,
-      remoteAddress: uniqueIp(),
-    });
+    const res = await app
+      .getHttpAdapter()
+      .getInstance()
+      .inject({
+        method: 'POST',
+        url: '/organizations',
+        payload: { name: 'Second Workspace' },
+        headers: user.cookie,
+        remoteAddress: uniqueIp(),
+      });
     expect(res.statusCode).toBe(201);
     const slug = (res.json() as { organization: { slug: string } }).organization.slug;
     expect(slug).toMatch(/^second-workspace-[a-f0-9]{6}$/); // first one exists → suffix
   });
 
   it('signup without organizationName creates no workspace (wizard path)', async () => {
-    const res = await app.getHttpAdapter().getInstance().inject({
-      method: 'POST',
-      url: '/auth/signup',
-      payload: {
-        email: `wizard-${user.id.slice(0, 8)}@${DOMAIN}`,
-        username: `wizard-${user.id.slice(0, 8)}`,
-        password: 'a-long-secure-password',
-        displayName: 'Wizard User',
-      },
-      remoteAddress: uniqueIp(),
-    });
+    const res = await app
+      .getHttpAdapter()
+      .getInstance()
+      .inject({
+        method: 'POST',
+        url: '/auth/signup',
+        payload: {
+          email: `wizard-${user.id.slice(0, 8)}@${DOMAIN}`,
+          username: `wizard-${user.id.slice(0, 8)}`,
+          password: 'A-long-secure-passw0rd',
+          displayName: 'Wizard User',
+        },
+        remoteAddress: uniqueIp(),
+      });
     expect(res.statusCode).toBe(201);
     const created = (res.json() as { user: { id: string } }).user;
     const memberships = await owner`select id from organization_members

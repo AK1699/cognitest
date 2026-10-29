@@ -8,7 +8,7 @@ import { and, eq } from 'drizzle-orm';
 
 import { AuditService } from '../audit/audit.service';
 import { AuthorizationService } from '../authz/authorization.service';
-import { isUniqueViolation } from '../common/db-errors';
+import { isForeignKeyViolation, isUniqueViolation } from '../common/db-errors';
 import { organizationMembers, teamMembers, teams } from '../db/schema';
 import { TenantDb } from '../db/tenant-db.service';
 
@@ -50,16 +50,31 @@ export class TeamsService {
     return this.tenantDb.run(async (tx) => {
       const [team] = await tx.update(teams).set(patch).where(eq(teams.id, teamId)).returning();
       if (!team) throw new NotFoundException();
-      await this.audit.log({ action: 'TEAM_UPDATED', resourceType: 'team', resourceId: teamId }, tx);
+      await this.audit.log(
+        { action: 'TEAM_UPDATED', resourceType: 'team', resourceId: teamId },
+        tx,
+      );
       return team;
     });
   }
 
   async remove(teamId: string): Promise<void> {
     await this.tenantDb.run(async (tx) => {
-      const deleted = await tx.delete(teams).where(eq(teams.id, teamId)).returning({ id: teams.id });
+      const deleted = await tx
+        .delete(teams)
+        .where(eq(teams.id, teamId))
+        .returning({ id: teams.id })
+        .catch((error: unknown) => {
+          // projects_team_org_fk is ON DELETE RESTRICT
+          throw isForeignKeyViolation(error)
+            ? new ConflictException('Move or delete this team’s projects first')
+            : error;
+        });
       if (deleted.length === 0) throw new NotFoundException();
-      await this.audit.log({ action: 'TEAM_DELETED', resourceType: 'team', resourceId: teamId }, tx);
+      await this.audit.log(
+        { action: 'TEAM_DELETED', resourceType: 'team', resourceId: teamId },
+        tx,
+      );
     });
   }
 
@@ -84,10 +99,7 @@ export class TeamsService {
         );
       if (!member) throw new BadRequestException('User is not a member of this organization');
 
-      await tx
-        .insert(teamMembers)
-        .values({ teamId, organizationId, userId })
-        .onConflictDoNothing();
+      await tx.insert(teamMembers).values({ teamId, organizationId, userId }).onConflictDoNothing();
       await this.audit.log(
         {
           action: 'TEAM_MEMBER_ADDED',

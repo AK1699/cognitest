@@ -25,18 +25,21 @@ export async function signupUser(
 ): Promise<FixtureUser> {
   const run = randomUUID().slice(0, 8);
   const email = `${tag}-${run}@${emailDomain}`;
-  const res = await app.getHttpAdapter().getInstance().inject({
-    method: 'POST',
-    url: '/auth/signup',
-    payload: {
-      email,
-      username: `${tag}-${run}`,
-      password: 'a-long-secure-password',
-      displayName: `User ${tag}`,
-      organizationName: `${tag} Workspace`,
-    },
-    remoteAddress: uniqueIp(),
-  });
+  const res = await app
+    .getHttpAdapter()
+    .getInstance()
+    .inject({
+      method: 'POST',
+      url: '/auth/signup',
+      payload: {
+        email,
+        username: `${tag}-${run}`,
+        password: 'A-long-secure-passw0rd',
+        displayName: `User ${tag}`,
+        organizationName: `${tag} Workspace`,
+      },
+      remoteAddress: uniqueIp(),
+    });
   if (res.statusCode !== 201) throw new Error(`signup failed: ${res.body}`);
   const token = sessionCookie(res);
   const user = (res.json() as { user: { id: string } }).user;

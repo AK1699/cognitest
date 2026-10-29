@@ -4,22 +4,27 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
 
+import { useToast } from '../toast';
+
 /**
  * Structural stand-in for a Zod schema — only safeParse is needed here, and
  * a nominal ZodType would couple this file to the exact zod instance the
  * shared package was compiled against.
  */
 interface ValidationSchema {
-  safeParse(value: unknown):
-    | { success: true }
-    | { success: false; error: { issues: { message: string }[] } };
+  safeParse(
+    value: unknown,
+  ): { success: true } | { success: false; error: { issues: { message: string }[] } };
 }
 
-/** Posts JSON to the proxied API and surfaces validation/auth errors inline. */
+/** Posts JSON to the proxied API and surfaces validation/auth errors as toasts. */
 export function useAuthSubmit() {
   const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
   const [pending, setPending] = useState(false);
+  const setError = (message: string | null) => {
+    if (message) toast.push(message, 'error');
+  };
 
   async function submit(
     url: string,
@@ -63,17 +68,9 @@ export function useAuthSubmit() {
     }
   }
 
-  return { submit, error, pending };
+  return { submit, pending };
 }
 
-export function FormError({ error }: { error: string | null }) {
-  if (!error) return null;
-  return (
-    <p role="alert" className="rounded-[10px] bg-fail-tint px-3.5 py-2.5 text-sm text-fail">
-      {error}
-    </p>
-  );
-}
 
 export function AuthForm({
   onSubmit,

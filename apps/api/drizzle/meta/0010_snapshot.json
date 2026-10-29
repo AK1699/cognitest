@@ -127,12 +127,8 @@
           "tableFrom": "audit_logs",
           "tableTo": "organizations",
           "schemaTo": "tenancy",
-          "columnsFrom": [
-            "organization_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["organization_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -141,12 +137,8 @@
           "tableFrom": "audit_logs",
           "tableTo": "users",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "actor_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["actor_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -243,12 +235,8 @@
           "tableFrom": "auth_tokens",
           "tableTo": "users",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -258,9 +246,7 @@
         "auth_tokens_token_hash_unique": {
           "name": "auth_tokens_token_hash_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token_hash"
-          ]
+          "columns": ["token_hash"]
         }
       },
       "policies": {},
@@ -394,12 +380,8 @@
           "tableFrom": "invitations",
           "tableTo": "organizations",
           "schemaTo": "tenancy",
-          "columnsFrom": [
-            "organization_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["organization_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -408,12 +390,8 @@
           "tableFrom": "invitations",
           "tableTo": "roles",
           "schemaTo": "access",
-          "columnsFrom": [
-            "role_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["role_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -422,12 +400,8 @@
           "tableFrom": "invitations",
           "tableTo": "teams",
           "schemaTo": "tenancy",
-          "columnsFrom": [
-            "team_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["team_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -436,12 +410,8 @@
           "tableFrom": "invitations",
           "tableTo": "users",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "invited_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["invited_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -451,9 +421,7 @@
         "invitations_token_hash_unique": {
           "name": "invitations_token_hash_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token_hash"
-          ]
+          "columns": ["token_hash"]
         }
       },
       "policies": {},
@@ -536,12 +504,8 @@
           "tableFrom": "oauth_accounts",
           "tableTo": "users",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -551,10 +515,7 @@
         "oauth_accounts_provider_account_uq": {
           "name": "oauth_accounts_provider_account_uq",
           "nullsNotDistinct": false,
-          "columns": [
-            "provider",
-            "provider_account_id"
-          ]
+          "columns": ["provider", "provider_account_id"]
         }
       },
       "policies": {},
@@ -643,12 +604,8 @@
           "tableFrom": "organization_members",
           "tableTo": "organizations",
           "schemaTo": "tenancy",
-          "columnsFrom": [
-            "organization_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["organization_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -657,12 +614,8 @@
           "tableFrom": "organization_members",
           "tableTo": "users",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -671,12 +624,8 @@
           "tableFrom": "organization_members",
           "tableTo": "roles",
           "schemaTo": "access",
-          "columnsFrom": [
-            "role_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["role_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -686,10 +635,7 @@
         "organization_members_org_user_uq": {
           "name": "organization_members_org_user_uq",
           "nullsNotDistinct": false,
-          "columns": [
-            "organization_id",
-            "user_id"
-          ]
+          "columns": ["organization_id", "user_id"]
         }
       },
       "policies": {},
@@ -769,9 +715,7 @@
         "organizations_slug_unique": {
           "name": "organizations_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "policies": {},
@@ -845,12 +789,8 @@
           "tableFrom": "project_members",
           "tableTo": "users",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -859,14 +799,8 @@
           "tableFrom": "project_members",
           "tableTo": "projects",
           "schemaTo": "product",
-          "columnsFrom": [
-            "project_id",
-            "organization_id"
-          ],
-          "columnsTo": [
-            "id",
-            "organization_id"
-          ],
+          "columnsFrom": ["project_id", "organization_id"],
+          "columnsTo": ["id", "organization_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -876,10 +810,7 @@
         "project_members_project_user_uq": {
           "name": "project_members_project_user_uq",
           "nullsNotDistinct": false,
-          "columns": [
-            "project_id",
-            "user_id"
-          ]
+          "columns": ["project_id", "user_id"]
         }
       },
       "policies": {},
@@ -973,12 +904,8 @@
           "tableFrom": "projects",
           "tableTo": "organizations",
           "schemaTo": "tenancy",
-          "columnsFrom": [
-            "organization_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["organization_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -987,12 +914,8 @@
           "tableFrom": "projects",
           "tableTo": "users",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1002,18 +925,12 @@
         "projects_org_key_uq": {
           "name": "projects_org_key_uq",
           "nullsNotDistinct": false,
-          "columns": [
-            "organization_id",
-            "key"
-          ]
+          "columns": ["organization_id", "key"]
         },
         "projects_id_org_uq": {
           "name": "projects_id_org_uq",
           "nullsNotDistinct": false,
-          "columns": [
-            "id",
-            "organization_id"
-          ]
+          "columns": ["id", "organization_id"]
         }
       },
       "policies": {},
@@ -1077,9 +994,7 @@
         "permissions_key_unique": {
           "name": "permissions_key_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "key"
-          ]
+          "columns": ["key"]
         }
       },
       "policies": {},
@@ -1124,12 +1039,8 @@
           "tableFrom": "role_permissions",
           "tableTo": "roles",
           "schemaTo": "access",
-          "columnsFrom": [
-            "role_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["role_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1138,12 +1049,8 @@
           "tableFrom": "role_permissions",
           "tableTo": "permissions",
           "schemaTo": "access",
-          "columnsFrom": [
-            "permission_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["permission_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1151,10 +1058,7 @@
       "compositePrimaryKeys": {
         "role_permissions_role_id_permission_id_pk": {
           "name": "role_permissions_role_id_permission_id_pk",
-          "columns": [
-            "role_id",
-            "permission_id"
-          ]
+          "columns": ["role_id", "permission_id"]
         }
       },
       "uniqueConstraints": {},
@@ -1242,12 +1146,8 @@
           "tableFrom": "roles",
           "tableTo": "organizations",
           "schemaTo": "tenancy",
-          "columnsFrom": [
-            "organization_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["organization_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1257,18 +1157,12 @@
         "roles_org_name_uq": {
           "name": "roles_org_name_uq",
           "nullsNotDistinct": true,
-          "columns": [
-            "organization_id",
-            "name"
-          ]
+          "columns": ["organization_id", "name"]
         },
         "roles_org_key_uq": {
           "name": "roles_org_key_uq",
           "nullsNotDistinct": true,
-          "columns": [
-            "organization_id",
-            "key"
-          ]
+          "columns": ["organization_id", "key"]
         }
       },
       "policies": {},
@@ -1366,12 +1260,8 @@
           "tableFrom": "sessions",
           "tableTo": "users",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1381,9 +1271,7 @@
         "sessions_token_hash_unique": {
           "name": "sessions_token_hash_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token_hash"
-          ]
+          "columns": ["token_hash"]
         }
       },
       "policies": {},
@@ -1457,12 +1345,8 @@
           "tableFrom": "team_members",
           "tableTo": "users",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1471,14 +1355,8 @@
           "tableFrom": "team_members",
           "tableTo": "teams",
           "schemaTo": "tenancy",
-          "columnsFrom": [
-            "team_id",
-            "organization_id"
-          ],
-          "columnsTo": [
-            "id",
-            "organization_id"
-          ],
+          "columnsFrom": ["team_id", "organization_id"],
+          "columnsTo": ["id", "organization_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1488,10 +1366,7 @@
         "team_members_team_user_uq": {
           "name": "team_members_team_user_uq",
           "nullsNotDistinct": false,
-          "columns": [
-            "team_id",
-            "user_id"
-          ]
+          "columns": ["team_id", "user_id"]
         }
       },
       "policies": {},
@@ -1565,12 +1440,8 @@
           "tableFrom": "teams",
           "tableTo": "organizations",
           "schemaTo": "tenancy",
-          "columnsFrom": [
-            "organization_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["organization_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1580,18 +1451,12 @@
         "teams_org_slug_uq": {
           "name": "teams_org_slug_uq",
           "nullsNotDistinct": false,
-          "columns": [
-            "organization_id",
-            "slug"
-          ]
+          "columns": ["organization_id", "slug"]
         },
         "teams_id_org_uq": {
           "name": "teams_id_org_uq",
           "nullsNotDistinct": false,
-          "columns": [
-            "id",
-            "organization_id"
-          ]
+          "columns": ["id", "organization_id"]
         }
       },
       "policies": {},
@@ -1688,16 +1553,12 @@
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         },
         "users_username_unique": {
           "name": "users_username_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "username"
-          ]
+          "columns": ["username"]
         }
       },
       "policies": {},
@@ -1709,72 +1570,42 @@
     "public.auth_token_type": {
       "name": "auth_token_type",
       "schema": "public",
-      "values": [
-        "email_verification",
-        "password_reset"
-      ]
+      "values": ["email_verification", "password_reset"]
     },
     "public.invitation_status": {
       "name": "invitation_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "accepted",
-        "expired",
-        "revoked"
-      ]
+      "values": ["pending", "accepted", "expired", "revoked"]
     },
     "public.oauth_provider": {
       "name": "oauth_provider",
       "schema": "public",
-      "values": [
-        "google",
-        "microsoft"
-      ]
+      "values": ["google", "microsoft"]
     },
     "public.member_status": {
       "name": "member_status",
       "schema": "public",
-      "values": [
-        "active",
-        "suspended"
-      ]
+      "values": ["active", "suspended"]
     },
     "public.onboarding_status": {
       "name": "onboarding_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "in_progress",
-        "completed"
-      ]
+      "values": ["pending", "in_progress", "completed"]
     },
     "public.org_status": {
       "name": "org_status",
       "schema": "public",
-      "values": [
-        "active",
-        "suspended"
-      ]
+      "values": ["active", "suspended"]
     },
     "public.project_status": {
       "name": "project_status",
       "schema": "public",
-      "values": [
-        "active",
-        "archived"
-      ]
+      "values": ["active", "archived"]
     },
     "public.user_status": {
       "name": "user_status",
       "schema": "public",
-      "values": [
-        "pending_verification",
-        "active",
-        "suspended",
-        "disabled",
-        "deleted"
-      ]
+      "values": ["pending_verification", "active", "suspended", "disabled", "deleted"]
     }
   },
   "schemas": {

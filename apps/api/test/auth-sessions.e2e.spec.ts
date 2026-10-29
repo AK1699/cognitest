@@ -16,7 +16,7 @@ const ownerUrl =
 
 const run = randomUUID().slice(0, 8);
 const EMAIL = `sessions-${run}@sessions.test.local`;
-const PASSWORD = 'a-long-secure-password';
+const PASSWORD = 'A-long-secure-passw0rd';
 let ipCounter = 1;
 const uniqueIp = () => `10.98.0.${ipCounter++}`;
 
@@ -63,7 +63,11 @@ describe('sessions (e2e)', () => {
 
   it('GET /auth/me returns the user and live session; no cookie → 401', async () => {
     const token = await login();
-    const me = await instance().inject({ method: 'GET', url: '/auth/me', headers: cookieHeader(token) });
+    const me = await instance().inject({
+      method: 'GET',
+      url: '/auth/me',
+      headers: cookieHeader(token),
+    });
     expect(me.statusCode).toBe(200);
     const body = me.json() as { user: { email: string }; session: { id: string } };
     expect(body.user.email).toBe(EMAIL);
@@ -100,7 +104,11 @@ describe('sessions (e2e)', () => {
     const hash = createHash('sha256').update(token).digest('hex');
     await redis.del(`sess:${hash}`);
 
-    const me = await instance().inject({ method: 'GET', url: '/auth/me', headers: cookieHeader(token) });
+    const me = await instance().inject({
+      method: 'GET',
+      url: '/auth/me',
+      headers: cookieHeader(token),
+    });
     expect(me.statusCode).toBe(200);
     expect(await redis.exists(`sess:${hash}`)).toBe(1);
   });

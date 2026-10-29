@@ -6,19 +6,35 @@ export const usernameSchema = z
   .string()
   .regex(/^[a-z0-9_-]{3,32}$/i, 'Username must be 3–32 letters, digits, _ or -');
 
+/** Displayable password rules — the schema and the signup checklist share these. */
+export const PASSWORD_RULES: { label: string; test: (value: string) => boolean }[] = [
+  { label: 'At least one uppercase letter (A–Z)', test: (value) => /[A-Z]/.test(value) },
+  { label: 'At least one lowercase letter (a–z)', test: (value) => /[a-z]/.test(value) },
+  { label: 'At least one number (0–9)', test: (value) => /[0-9]/.test(value) },
+  { label: 'At least one special character', test: (value) => /[^A-Za-z0-9]/.test(value) },
+];
+
 export const passwordSchema = z
   .string()
-  .min(12, 'Password must be at least 12 characters')
-  .max(128, 'Password must be at most 128 characters');
+  .max(128, 'Password must be at most 128 characters')
+  .superRefine((value, ctx) => {
+    for (const rule of PASSWORD_RULES) {
+      if (!rule.test(value)) {
+        ctx.addIssue({ code: 'custom', message: `Password must have: ${rule.label.toLowerCase()}` });
+      }
+    }
+  });
 
 /** Raw one-time tokens are 32 random bytes base64url-encoded → 43 chars. */
 export const rawTokenSchema = z.string().length(43);
 
 export const signupRequestSchema = z.object({
   email: z.email('Enter a valid email address'),
-  username: usernameSchema,
+  /** Optional — the web signup collects only email + password. */
+  username: usernameSchema.optional(),
   password: passwordSchema,
-  displayName: z.string().min(1, 'Display name is required').max(100),
+  /** Optional — defaults to the email local part, as with OIDC signups. */
+  displayName: z.string().min(1, 'Display name is required').max(100).optional(),
   /**
    * Optional one-shot workspace bootstrap (API convenience). The web signup
    * omits it — the onboarding wizard creates the organization instead.

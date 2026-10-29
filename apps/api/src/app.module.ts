@@ -11,6 +11,7 @@ import { AuditModule } from './audit/audit.module';
 import { AuthModule } from './auth/auth.module';
 import { AuthGuard } from './auth/guards/auth.guard';
 import { CsrfGuard } from './auth/guards/csrf.guard';
+import { AutomationModule } from './automation/automation.module';
 import { AuthzModule } from './authz/authz.module';
 import { PermissionGuard } from './authz/guards/permission.guard';
 import { TenantGuard } from './authz/guards/tenant.guard';
@@ -19,12 +20,14 @@ import { RequestContextMiddleware } from './common/context/request-context.middl
 import { validateEnv } from './config/env.schema';
 import { DbModule } from './db/db.module';
 import { HealthModule } from './health/health.module';
+import { IntegrationsModule } from './integrations/integrations.module';
 import { InvitationsModule } from './invitations/invitations.module';
 import { OrganizationsModule } from './organizations/organizations.module';
 import { ProjectsModule } from './projects/projects.module';
 import { RbacModule } from './rbac/rbac.module';
 import { REDIS, RedisModule } from './redis/redis.module';
 import { TeamsModule } from './teams/teams.module';
+import { TestArtifactsModule } from './test-artifacts/test-artifacts.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -35,8 +38,7 @@ import { UsersModule } from './users/users.module';
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-        transport:
-          process.env.NODE_ENV === 'development' ? { target: 'pino-pretty' } : undefined,
+        transport: process.env.NODE_ENV === 'development' ? { target: 'pino-pretty' } : undefined,
       },
     }),
     ContextModule,
@@ -58,6 +60,9 @@ import { UsersModule } from './users/users.module';
     OrganizationsModule,
     ProjectsModule,
     TeamsModule,
+    TestArtifactsModule,
+    AutomationModule,
+    IntegrationsModule,
     InvitationsModule,
     RbacModule,
     AuditModule,

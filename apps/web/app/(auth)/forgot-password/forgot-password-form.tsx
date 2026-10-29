@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 
-import { AuthForm, FormError } from '../auth-form';
+import { AuthForm } from '../auth-form';
 import { Field, PrimaryButton } from '../components';
+import { useToast } from '../../toast';
 
 export function ForgotPasswordForm() {
+  const toast = useToast();
   const [sent, setSent] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const setError = (message: string) => toast.push(message, 'error');
 
   if (sent) {
     return (
@@ -30,7 +32,6 @@ export function ForgotPasswordForm() {
           .catch(() => setError('Network error — is the API running?'));
       }}
     >
-      <FormError error={error} />
       <Field
         id="email"
         label="Email"

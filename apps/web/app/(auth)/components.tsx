@@ -30,12 +30,14 @@ export function Field({
   type,
   placeholder,
   autoComplete,
+  onChange,
 }: {
   id: string;
   label: string;
   type: string;
   placeholder: string;
   autoComplete: string;
+  onChange?: (value: string) => void;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -48,6 +50,7 @@ export function Field({
         type={type}
         placeholder={placeholder}
         autoComplete={autoComplete}
+        onChange={onChange ? (event) => onChange(event.target.value) : undefined}
         className="rounded-[10px] border border-line bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-muted/70 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
       />
     </div>

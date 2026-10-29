@@ -5,11 +5,11 @@ import { useSearchParams } from 'next/navigation';
 
 import { resetPasswordRequestSchema } from '@cognitest/shared';
 
-import { AuthForm, FormError, useAuthSubmit } from '../auth-form';
+import { AuthForm, useAuthSubmit } from '../auth-form';
 import { Field, PrimaryButton } from '../components';
 
 export function ResetPasswordForm() {
-  const { submit, error, pending } = useAuthSubmit();
+  const { submit, pending } = useAuthSubmit();
   const token = useSearchParams().get('token');
 
   if (!token) {
@@ -35,12 +35,11 @@ export function ResetPasswordForm() {
         )
       }
     >
-      <FormError error={error} />
       <Field
         id="password"
         label="New password"
         type="password"
-        placeholder="At least 12 characters"
+        placeholder="Create a password"
         autoComplete="new-password"
       />
       <PrimaryButton>{pending ? 'Saving…' : 'Set new password'}</PrimaryButton>

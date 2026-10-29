@@ -1,6 +1,8 @@
 export * from './audit-logs';
 export * from './auth-tokens';
+export * from './automation';
 export * from './helpers';
+export * from './integrations';
 export * from './invitations';
 export * from './oauth-accounts';
 export * from './organizations';
@@ -9,4 +11,6 @@ export * from './rbac';
 export * from './schemas';
 export * from './sessions';
 export * from './teams';
+export * from './test-artifacts';
+export * from './test-designs';
 export * from './users';
